@@ -1,4 +1,5 @@
-## Llama 2 everywhere
+## Llama 2 Everywhere
+![SDXL_09_Cute_little_llamas_coming_out_of_a_computer_screen_in_0](https://github.com/trholding/llama2.c/assets/93451215/eaca5165-bb21-40fa-a2bd-1a7665068fb8)
 
 Standalone and 64bit Binary Portable Llama 2 Inference in one file of C
 
