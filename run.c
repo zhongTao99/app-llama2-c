@@ -23,16 +23,16 @@ $ ./run.com
 // Actually Portable Executable Format Preprocessor Directives
 
 #ifdef COSMO_BLINK // Support ARM 64 Bit via Blink VM Emulation
-STATIC_YOINK("blink_linux_aarch64");  // for raspberry pi
-STATIC_YOINK("blink_xnu_aarch64");    // is apple silicon
+__static_yoink("blink_linux_aarch64");  // for raspberry pi
+__static_yoink("blink_xnu_aarch64");    // is apple silicon
 #endif
 
 #ifdef COSMO_METAL // Support VGA Console when running bare metal
-STATIC_YOINK("vga_console");
+__static_yoink("vga_console");
 #endif
 
 #ifdef COSMO_ZIP // Support embedded models via Zip Archive support
-STATIC_YOINK("zipos");
+__static_yoink("zipos");
 #endif
 
 // ----------------------------------------------------------------------------
