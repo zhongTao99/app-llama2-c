@@ -45,6 +45,12 @@ rungnu:
 runompgnu:
 	$(CC) -Ofast -fopenmp -std=gnu11 run.c  -lm  -o run
 
+.PHONY: cosmorun
+cosmorun:
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com
+	zip run.com out/model.bin
+	zip run.com tokenizer.bin
+
 .PHONY: clean
 clean:
 	rm -f run
