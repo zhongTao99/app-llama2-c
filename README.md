@@ -29,7 +29,7 @@ These features depend on a specific cosmocc toolchain: https://github.com/jart/c
 Building this with gcc or clang would result in normal binaries similar to upstream.
 
 Read more:
-[How to build](https://github.com/trholding/llama2.c/edit/master/README.md#binary-portability-even-more-magic)
+[How to build](https://github.com/trholding/llama2.c/master/README.md#binary-portability-even-more-magic)
 
 Download the prebuilt run.com binary from releases
 
