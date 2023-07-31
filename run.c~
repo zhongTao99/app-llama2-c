@@ -246,7 +246,7 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
     // W (d,n) @ x (n,) -> xout (d,)
     // by far the most amount of time is spent inside this little function
     #ifdef BLAS
-    cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1.0f, w, n, x, 1, 0.0f, xout, 1);
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1, w, n, x, 1, 0, xout, 1);
     #else
     int i;
     #pragma omp parallel for private(i)
