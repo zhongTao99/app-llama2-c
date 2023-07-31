@@ -45,6 +45,14 @@ rungnu:
 runompgnu:
 	$(CC) -Ofast -fopenmp -std=gnu11 run.c  -lm  -o run
 
+.PHONY: runclblast
+runclblast: run.c
+	$(CC) -D CLBLAST -Ofast -fopenmp -march=native run.c -lm -lclblast -o run
+
+.PHONY: runopenblas
+runopenblas: run.c
+	$(CC) -D OPENBLAS -Ofast -fopenmp -march=native run.c -lm -lcblas -o run
+
 .PHONY: cosmorun
 cosmorun:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com

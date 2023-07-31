@@ -36,6 +36,19 @@ __static_yoink("zipos");
 #endif
 
 // ----------------------------------------------------------------------------
+// BLAS Support
+
+#ifdef CLBLAST
+#include <clblast_netlib_c.h>
+#define BLAS
+#endif
+
+#ifdef OPENBLAS
+#include <cblas.h>
+#define BLAS
+#endif	
+
+// ----------------------------------------------------------------------------
 // Standard Headers
 
 #include <stdio.h>
@@ -181,17 +194,25 @@ void checkpoint_init_weights(TransformerWeights *w, Config* p, float* f, int sha
 // neural net blocks
 
 void accum(float *a, float *b, int size) {
+    #ifdef BLAS
+    cblas_saxpy(size, 1.0f, b, 1.0f, a, 1);
+    #else
     for (int i = 0; i < size; i++) {
         a[i] += b[i];
     }
+    #endif
 }
 
 void rmsnorm(float* o, float* x, float* weight, int size) {
     // calculate sum of squares
     float ss = 0.0f;
+    #ifdef BLAS
+    ss = cblas_sdot(size, x, 1.0f, x, 1.0f);
+    #else
     for (int j = 0; j < size; j++) {
         ss += x[j] * x[j];
     }
+    #endif
     ss /= size;
     ss += 1e-5f;
     ss = 1.0f / sqrtf(ss);
@@ -224,6 +245,9 @@ void softmax(float* x, int size) {
 void matmul(float* xout, float* x, float* w, int n, int d) {
     // W (d,n) @ x (n,) -> xout (d,)
     // by far the most amount of time is spent inside this little function
+    #ifdef BLAS
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1, w, n, x, 1, 0, xout, 1);
+    #else
     int i;
     #pragma omp parallel for private(i)
     for (i = 0; i < d; i++) {
@@ -233,6 +257,7 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
         }
         xout[i] = val;
     }
+    #endif
 }
 
 void transformer(int token, int pos, Config* p, RunState* s, TransformerWeights* w) {
@@ -491,6 +516,12 @@ int main(int argc, char *argv[]) {
     // we read the embedded checkpoint from within the executable
     // 'checkpoint' is necessary arg
     checkpoint = "/zip/out/model.bin" ;
+    buffertokens=32;
+    char promptbuffer[1024]; // Buffer for prompt 
+    printf("LLAMA2 Prompt: ");
+    fflush(stdout);
+    gets(promptbuffer); // Read prompt
+    prompt=promptbuffer; // Set prompt
     #else
     if (argc < 2) {
         printf("Usage: %s <checkpoint_file> [temperature] [steps] [prompt] [buffer_tokens]\n", argv[0]);
