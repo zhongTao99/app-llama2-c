@@ -1,7 +1,7 @@
 ## Llama 2 Everywhere
 
 <p align="center">
-  <img src="assets/llama_everywhere.jpg" width="300" height="300" alt="LLamas Everywhere!">
+  <img src="assets/llamas_everywhere.jpg" width="600" height="454" alt="LLamas Everywhere!">
 </p>
 
 Standalone and 64bit Binary Portable Llama 2 Inference in one file of C
