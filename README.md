@@ -1,5 +1,8 @@
 ## Llama 2 Everywhere
-![SDXL_09_Cute_little_llamas_coming_out_of_a_computer_screen_in_0](https://github.com/trholding/llama2.c/assets/93451215/eaca5165-bb21-40fa-a2bd-1a7665068fb8)
+
+<p align="center">
+  <img src="assets/llama_everywhere.jpg" width="300" height="300" alt="LLamas Everywhere!">
+</p>
 
 Standalone and 64bit Binary Portable Llama 2 Inference in one file of C
 
@@ -39,7 +42,7 @@ Download the prebuilt run.com binary from releases
   <img src="assets/llama_cute.jpg" width="300" height="300" alt="Cute Llama">
 </p>
 
-A friendly fork of the excellent https://github.com/karpathy/llama2.c
+A friendly fork of the excellent [llama2.c](https://github.com/karpathy/llama2.c)
 
 The original repository offers a full-stack solution for training and inferring the Llama 2 LLM architecture using PyTorch and a simple 500-line C file. The focus is on minimalism and simplicity, and the repo is a young project that is still being actively developed. The author recommends looking at the TinyStories paper for inspiration, as small LLMs can have strong performance in narrow domains. The C inference engine in run.c was the main focus of the project, and the Llama 2 architecture is hard-coded with no dependencies.
 
@@ -260,9 +263,6 @@ Else
 
 $ ./run.com model.bin
 ```
-
-## unsorted todos
-
 ## platforms
 
 On **Windows**, use `build_msvc.bat` in a Visual Studio Command Prompt to build with msvc, or you can use `make win64` to use mingw compiler toolchain from linux or windows to build the windows target. MSVC build will automatically use openmp and max threads appropriate for your CPU unless you set `OMP_NUM_THREADS` env.
@@ -272,10 +272,6 @@ On **Centos 7**, **Amazon Linux 2018** use `rungnu` Makefile target: `make rungn
 ## ack
 
 I trained the llama2.c storyteller models on a 4X A100 40GB box graciously provided by the excellent [Lambda labs](https://lambdalabs.com/service/gpu-cloud), thank you.
-
-## discord
-
-Figured it's possible to reuse my existing discord channel (that I use for my [zero to hero youtube series](https://karpathy.ai/zero-to-hero.html)), see #llama2c channel on [discord](https://discord.gg/3zy8kqD9Cp), for any quick questions, related discussions, etc.
 
 ## contributing
 
@@ -295,32 +291,9 @@ A few examples of PRs are that are not an excellent fit:
 
 If your candidate PRs have elements of these it doesn't mean they won't get merged, it just means they will make it into the gray territory. TLDR: I am eager to merge any mostly small, mostly localized, broadly applicable, clean changes that improve the efficiency and portability of the repo, while keep its hackability and readability. I appreciate all PRs seeking to help me improve the project, thank you! <3.
 
-## notable forks
-
-- [llama2.rs](https://github.com/gaxler/llama2.rs) by @gaxler: a Rust port of this project
-- [go-llama2](https://github.com/tmc/go-llama2) by @tmc: a Go port of this project
-- [llama2.go](https://github.com/nikolaydubina/llama2.go) by @nikolaydubina: a Go port of this project
-- [llama2.go](https://github.com/haormj/llama2.go) by @haormj: a Go port of this project
-- [llama2.go](https://github.com/saracen/llama2.go) by @saracen: a Go port of this project
-- [llama2.c-android](https://github.com/Manuel030/llama2.c-android): by @Manuel030: adds Android binaries of this project
-- [llama2.cpp](https://github.com/leloykun/llama2.cpp) by @leloykun: a C++ port of this project
-- [llama2.js](https://github.com/epicure/llama2.js) by @epicure: a JavaScript port of this project
-- [llama2.zig](https://github.com/cgbur/llama2.zig) by @cgbur: A Zig port of this project
-
-## unsorted todos
-
-- support Llama 2 7B Chat model and tune run.c to Chat UI/UX
-- speed up 7B Llama 2 models sufficiently to work at interactive rates on Apple Silicon MacBooks
-- possibly include emscripten / web backend (as seen in @gg PR)
-- currently the project only runs in fp32, how easy would it be to different precisions?
-- look into quantization and what would be involved
-- todo multiquery support? doesn't seem as useful for smaller models that run on CPU (?)
-- todo support inferencing beyond max_seq_len steps, have to think through the kv cache
-- why is MFU so low (~10%) on my A100 40GB for training?
-- weird errors with torch.compile and wandb when using DDP
-- (LoRA) finetuning of Llama 2 models
-- make more better tests to decrease yolo
-
+## Notable projects
+[llama.cpp](https://github.com/ggerganov/llama.cpp)
+[llama2.c](https://github.com/karpathy/llama2.c)
 ## License
 
 MIT
