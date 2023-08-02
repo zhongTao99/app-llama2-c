@@ -523,6 +523,28 @@ int main(int argc, char *argv[]) {
     gets(promptbuffer); // Read prompt
     prompt=promptbuffer; // Set prompt
     #else
+    for (int i = 1; i < argc; i++) {
+        switch (argv[i][0]) {
+            case '-':
+                switch (argv[i][1]) {
+                    case 'c': checkpoint = argv[++i];		break;
+                    case 't': temperature = atof(argv[++i]);	break;
+                    case 's': steps = atoi(argv[++i]);		break;
+                    case 'b': buffertokens = atoi(argv[++i]);	break;
+                    case 'p': prompt = argv[++i];		break;
+                    default: printf("Invalid option: %s\n", argv[i]);
+                    exit(EXIT_FAILURE);
+                } break;
+            default:
+            printf("Usage: %s -c <checkpoint_file> -t [temperature] -s [steps] -b [buffer_tokens] -p [prompt] \n", argv[0]);
+            exit(EXIT_FAILURE);
+        }
+    }
+    if (checkpoint == NULL) {
+        printf("Error: checkpoint file (model) not set. \nSet with %s -c <checkpoint_file>\n",argv[0]);
+        exit(EXIT_FAILURE);
+    }
+    /*
     if (argc < 2) {
         printf("Usage: %s <checkpoint_file> [temperature] [steps] [prompt] [buffer_tokens]\n", argv[0]);
         return 1;
@@ -542,7 +564,8 @@ int main(int argc, char *argv[]) {
     }
     if (argc >= 6) {
         buffertokens = atoi(argv[5]);
-    }    
+    }
+    */
     #endif
 
     // seed rng with time. if you want deterministic behavior use temperature 0.0
@@ -622,7 +645,7 @@ int main(int argc, char *argv[]) {
     #define MAX_BUFFER_SIZE 2048
     char outbuff[MAX_BUFFER_SIZE]=""; // used for output buffering
     outbuff[0]='\0';     
-    //memset( outbuff, '\0', sizeof( outbuff )); // clear buffer area
+    memset( outbuff, '\0', sizeof( outbuff )); // clear buffer area
     printf("<s>\n"); // explicit print the initial BOS token for stylistic symmetry reasons
     setvbuf(stdout, outbuff, _IOFBF, MAX_BUFFER_SIZE); // setup output buffering
     while (pos < steps) {
@@ -649,16 +672,16 @@ int main(int argc, char *argv[]) {
         }
 
         // following BOS token (1), sentencepiece decoder strips any leading whitespace (see PR #89)
-        //char *token_str = (token == 1 && vocab[next][0] == ' ') ? vocab[next]+1 : vocab[next];
-        char* token_str;
+        char *token_str = (token == 1 && vocab[next][0] == ' ') ? vocab[next]+1 : vocab[next];
+        /*char* token_str;
 	if (token == 1 && vocab[next][0] == ' ') {
     	token_str = vocab[next] + 1;
 	} else {
     	token_str = vocab[next];
-	}
-                
+	}*/
+
         printf("%s", token_str);
-        if (bufferflush==pos) { fflush(stdout); bufferflush+=buffertokens; outbuff[0]='\0';} // flush after every n tokens
+        if (bufferflush==pos && strlen(outbuff)<=MAX_BUFFER_SIZE) { fflush(stdout); bufferflush+=buffertokens; } // flush after every n tokens
 
         // advance forward
         token = next;
