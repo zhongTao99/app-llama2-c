@@ -658,7 +658,7 @@ int main(int argc, char *argv[]) {
 	}
                 
         printf("%s", token_str);
-        if (bufferflush==pos) { fflush(stdout); bufferflush+=buffertokens; } // flush after every n tokens
+        if (bufferflush==pos) { fflush(stdout); bufferflush+=buffertokens; outbuff[0]='\0';} // flush after every n tokens
 
         // advance forward
         token = next;
