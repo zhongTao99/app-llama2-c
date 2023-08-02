@@ -51,6 +51,10 @@ runclblast: run.c
 
 .PHONY: runopenblas
 runopenblas: run.c
+	$(CC) -D OPENBLAS -Ofast -fopenmp -march=native run.c -lm -lopenblas -o run
+
+.PHONY: runblas
+runblas: run.c
 	$(CC) -D OPENBLAS -Ofast -fopenmp -march=native run.c -lm -lcblas -o run
 
 .PHONY: cosmorun
