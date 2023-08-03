@@ -523,26 +523,27 @@ int main(int argc, char *argv[]) {
     gets(promptbuffer); // Read prompt
     prompt=promptbuffer; // Set prompt
     #else
-    for (int i = 1; i < argc; i++) {
+    // 'checkpoint' is necessary arg
+    if (argc < 2) {
+        printf("Usage: %s <checkpoint_file> \n", argv[0]);
+        exit(EXIT_FAILURE);
+    }    
+    if (argc >= 2) { checkpoint = argv[1]; }
+    for (int i = 2; i < argc; i++) {
         switch (argv[i][0]) {
             case '-':
                 switch (argv[i][1]) {
-                    case 'c': if (i + 1 < argc) { checkpoint = argv[++i]; }             break;
+                    // optional temperature. 0.0 = (deterministic) argmax sampling. 1.0 = baseline
                     case 't': if (i + 1 < argc) { temperature = atof(argv[++i]); }	break;
                     case 's': if (i + 1 < argc) { steps = atoi(argv[++i]); }            break;
-                    case 'b': if (i + 1 < argc) { buffertokens = atoi(argv[++i]);}      break;
                     case 'p': if (i + 1 < argc) { prompt = argv[++i]; }                 break;
                     default: printf("Invalid option: %s\n", argv[i]); 
                     exit(EXIT_FAILURE);
                 } break;
             default:
-            printf("Usage: %s -c <checkpoint_file> -t [temperature] -s [steps] -b [buffer_tokens] -p [prompt] \n", argv[0]);
+            printf("Usage: %s <checkpoint_file> -t [temperature] -s [steps] -p [prompt] \n", argv[0]);
             exit(EXIT_FAILURE);
         }
-    }
-    if (checkpoint == NULL) {
-        printf("Error: checkpoint file (model) not set. \nSet with %s -c <checkpoint_file>\n",argv[0]);
-        exit(EXIT_FAILURE);
     }
     #endif
 
