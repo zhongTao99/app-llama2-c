@@ -38,15 +38,18 @@ __static_yoink("zipos");
 // ----------------------------------------------------------------------------
 // BLAS Support
 
-#ifdef CLBLAST
-#include <clblast_netlib_c.h>
+#if defined(CLBLAST) || defined(OPENBLAS) || defined(CBLAS) || defined(BLIS)
 #define BLAS
 #endif
 
-#ifdef OPENBLAS
+#ifdef CLBLAST
+#include <clblast_netlib_c.h>
+#elif defined(BLIS)
+#include "blis.h"
+#include "cblas.h"
+#elif defined(OPENBLAS) || defined(CBLAS)
 #include <cblas.h>
-#define BLAS
-#endif	
+#endif
 
 // ----------------------------------------------------------------------------
 // Standard Headers
@@ -622,7 +625,7 @@ int main(int argc, char *argv[]) {
     int token = 1;   // init with token 1 (=BOS), as done in Llama-2 sentencepiece tokenizer
     int pos = 0;     // position in the sequence
     int bufferflush = 1; // token counter for flushing buffer
-    char outbuff[4096 * (6 + 2)] ; // buffersize is context length * average size of subwords + margin
+    static char outbuff[4096 * (6 + 2)] ; // buffersize is context length * average size of subwords + margin
     printf("<s>\n"); // explicit print the initial BOS token for stylistic symmetry reasons
     
     // setvbuf is used to buffer output into outbuff instead of flushing to screen directly

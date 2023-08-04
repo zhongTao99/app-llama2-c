@@ -1,5 +1,12 @@
+# Libraries
+# BLIS
+BLIS_PREFIX = /usr/local
+BLIS_INC    = $(BLIS_PREFIX)/include/blis
+BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
+
 # choose your compiler, e.g. gcc/clang
 # example override to clang: make run CC=clang
+
 CC = gcc
 
 # the most basic way of building that is most likely to work on most systems
@@ -55,7 +62,11 @@ runopenblas: run.c
 
 .PHONY: runblas
 runblas: run.c
-	$(CC) -D OPENBLAS -Ofast -fopenmp -march=native run.c -lm -lcblas -o run
+	$(CC) -D CBLAS -Ofast -fopenmp -march=native run.c -lm -lcblas -o run
+
+.PHONY: runblis
+runblis: run.c
+	$(CC) -D BLIS -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run
 
 .PHONY: cosmorun
 cosmorun:

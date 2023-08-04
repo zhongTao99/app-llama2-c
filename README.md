@@ -36,9 +36,20 @@ Building this with gcc or clang would result in normal binaries similar to upstr
 Read more:
 [How to build](https://github.com/trholding/llama2.c#portable-binary-build)
 
-- [x] Output Token Buffer
-- [x] Openblas
-- [x] CLBLAST - GPU 
+### Performance feature support
++ CPU
+- [x] OpenBLAS
+- [x] CBLAS
+- [x] BLIS
+
+CPU/GPU
+- [x] OpenMP (CPU)
+- [] OpenACC
+
++ GPU
+- [x] OpenCL (via CLBlast)
+- [] Vulkan
+- [] CUDA
 
 Download the prebuilt run.com binary from releases
 
@@ -64,7 +75,7 @@ wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin
 You can also prompt the model with a prefix:
 
 ```bash
-./run stories42M.bin 1.0 256 "A big dog"
+./run stories42M.bin -t 1.0 -s 256 -p "A big dog"
 ```
 
 When prompting, the temperature and steps parameters are needed since we use simple positional arguments.
@@ -139,6 +150,62 @@ Build on Linux and Windows:
 
 The MSVC build will use openmp and max threads suitable for your CPU unless you set `OMP_NUM_THREADS` env.
 
+### Build wth acceleration
+
+**OpenMP**
+
+This build enables acceleration via OpenMP
+
+```bash
+make runomp
+```
+
++ Requires [OpenMP](https://www.openmp.org/) libraries and compiler with OpenMP support to be available on system.
+
+**OpenBLAS**
+
+This build enables acceleration via OpenBLAS
+
+```bash
+make runopenblas
+```
+
++ Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS)to be installed on system.
+
+**BLIS**
+
+This build enables acceleration via BLIS
+
+```bash
+make runblis
+```
++ Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enable-cblas -t openmp,pthreads auto` to be installed on system.
+
+
+**Generic CBLAS**
+
+This build enables acceleration with any Netlib CBLAS interface compatible libraries
+
+```bash
+make runblas
+```
+
++ Requires any BLAS library with Netlib CBLAS interface such as [LAPACK](https://www.netlib.org/lapack) to be installed on system.
+
+
+**CLBlast (GPU/OpenCL)**
+
+This build enables tuned GPU acceleration via OpenCL with CLBlast
+
+```bash
+make runclblast
+```
+
++ Requires [ClBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
+
+Note: Currently runs much slower than CPU! Requires investigation or memory is a bottle neck on the test system.
+
+
 ## Portable Binary Build
 
 Have you ever wanted to inference a baby Llama 2 model with a single executable on any OS or *as OS? No? Well, now you can!
@@ -184,25 +251,22 @@ sudo ln -sf /opt/cosmo/tool/scripts/cosmoc++ /opt/cosmos/bin/cosmoc++
 
 Example build to generate a Actually Portable Executable (APE):
 
-```
-$ cosmocc -O3 -Ofast -funsafe-math-optimizations -ffast-math -D COSMO_BLINK \
--D COSMO_METAL -D COSMO_ZIP -o run.com run.c -lm
-
-Add model.bin and tokenizer.bin to executable:
-$ zip run.com out/model.bin
-$ zip run.com tokenizer.bin
+```bash
+make cosmorun
 ```
 
 Run or copy to any supported system and run:
 
-```
 If model is embedded:
 
-$ ./run.com
+```bash
+./run.com
+```
 
 Else
 
-$ ./run.com model.bin
+```bash
+/run.com model.bin
 ```
 
 ## contributing
