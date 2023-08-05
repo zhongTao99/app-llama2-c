@@ -219,7 +219,7 @@ More threads is not always better.
 This build enables acceleration via OpenACC
 
 ```bash
-make runomp
+make runoacc
 ```
 
 Requires [OpenACC](https://www.openacc.org/) libraries and compiler with OpenACC support to be available on system.
