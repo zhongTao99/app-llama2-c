@@ -52,6 +52,15 @@ __static_yoink("zipos");
 #endif
 
 // ----------------------------------------------------------------------------
+// OpenMP and OpenACC Support
+
+#ifdef OPENMP
+#define OMP
+#elif defined(OPENACC)
+#define OACC
+#endif
+
+// ----------------------------------------------------------------------------
 // Standard Headers
 
 #include <stdio.h>
@@ -252,7 +261,11 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
     cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1.0f, w, n, x, 1, 0.0f, xout, 1);
     #else
     int i;
+    #ifdef OMP
     #pragma omp parallel for private(i)
+    #elif defined(OACC)
+    #pragma acc parallel loop private(i)
+    #endif
     for (i = 0; i < d; i++) {
         float val = 0.0f;
         for (int j = 0; j < n; j++) {
@@ -319,7 +332,11 @@ void transformer(int token, int pos, Config* p, RunState* s, TransformerWeights*
         
         // multihead attention. iterate over all heads
         int h;
+        #ifdef OMP
         #pragma omp parallel for private(h)
+        #elif defined(OACC)
+        #pragma acc parallel loop private(h)
+        #endif
         for (h = 0; h < p->n_heads; h++) {
             // get the query vector for this head
             float* q = s->q + h * head_size;

@@ -43,13 +43,15 @@ Read more:
 - [x] BLIS
 
 CPU/GPU
-- [x] OpenMP (CPU)
-- [] OpenACC
+- [x] OpenMP 
+- [x] OpenACC
+
+Both OpenMP and OpenACC builds currently use CPU and not GPU.
 
 + GPU
 - [x] OpenCL (via CLBlast)
-- [] Vulkan
-- [] CUDA
+- [ ] Vulkan
+- [ ] CUDA
 
 Download the prebuilt run.com binary from releases
 
@@ -103,54 +105,59 @@ The upstream project owner trained the llama2.c storyteller models on a 4X A100 
 ```
 Converted **Meta's Llama 2 7b** model cab be infered at a slow speed.
 
-## Performance
-
-### Basic
-
-```bash
-make runfast
-```
-### OpenMP
-
-Requirements openmp libs. (e.g. `apt install clang libomp-dev` on ubuntu). 
-
-```bash
-make runomp
-```
-When you run inference make sure to use OpenMP flags to set the number of threads, e.g.:
-
-```bash
-OMP_NUM_THREADS=4 ./run out/model.bin
-```
-More threads is not always better.
-
 ## Platforms
 
 **Multi OS build**
 
-+ `make cosmorun`
+`make cosmorun`
 
-The binary will boot on baremetal and also run on any 64 Bit OS such as Linux, *BSD, Windows and slower on Aarch64 Mac & Linux
+The binary will boot on baremetal and also run on any 64 Bit OS such as Linux, *BSD, Windows and slower on Aarch64 Mac & Linux.
+
+Currently when used to boot, it won't be able to find the models. It's a toolchain issue with an anticipated fix.
+
+The performance of this build is more than twice of the basic build.
 
 **Linux**
 
 Centos 7 / Amazon Linux 2018
-+ `make rungnu` or `make runompgnu` to use openmp.
+
+`make rungnu` or `make runompgnu` to use openmp.
 
 **Other Linux Distros / Mac**
-+ `make runfast` or `make runomp` to use openmp.
+
+`make runfast` or `make runomp` to use openmp.
 
 **Windows**
 
 Build on windows: 
-+ `build_msvc.bat` in a Visual Studio Command Prompt 
 
-Build on Linux and Windows:
-+ `make win64` to use the mingw compiler toolchain.
+`build_msvc.bat` in a Visual Studio Command Prompt 
 
 The MSVC build will use openmp and max threads suitable for your CPU unless you set `OMP_NUM_THREADS` env.
 
-### Build wth acceleration
+Build on Linux and Windows:
+
+`make win64` to use the mingw compiler toolchain.
+
+## Performance
+
+**Basic**
+
+This build does not enable any optimizations.
+
+```bash
+make run
+```
+This can be used as baseline build against which performance of other builds can be compared.
+
+**Fast**
+
+This build enables basic performance boost with compiler provided optimizations.
+
+```bash
+make runfast
+```
+### Build wth Acceleration
 
 **OpenMP**
 
@@ -160,7 +167,25 @@ This build enables acceleration via OpenMP
 make runomp
 ```
 
-+ Requires [OpenMP](https://www.openmp.org/) libraries and compiler with OpenMP support to be available on system.
+Requires [OpenMP](https://www.openmp.org/) libraries and compiler with OpenMP support to be available on system.
+E.g. `apt install clang libomp-dev` on ubuntu
+
+When you run inference make sure to use OpenMP flags to set the number of threads, e.g.:
+
+```bash
+OMP_NUM_THREADS=4 ./run out/model.bin
+```
+More threads is not always better.
+
+**OpenACC**
+
+This build enables acceleration via OpenACC
+
+```bash
+make runomp
+```
+
+Requires [OpenACC](https://www.openacc.org/) libraries and compiler with OpenACC support to be available on system.
 
 **OpenBLAS**
 
@@ -170,7 +195,7 @@ This build enables acceleration via OpenBLAS
 make runopenblas
 ```
 
-+ Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS)to be installed on system.
+Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS)to be installed on system.
 
 **BLIS**
 
@@ -179,8 +204,7 @@ This build enables acceleration via BLIS
 ```bash
 make runblis
 ```
-+ Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enable-cblas -t openmp,pthreads auto` to be installed on system.
-
+Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enable-cblas -t openmp,pthreads auto` to be installed on system.
 
 **Generic CBLAS**
 
@@ -190,8 +214,7 @@ This build enables acceleration with any Netlib CBLAS interface compatible libra
 make runblas
 ```
 
-+ Requires any BLAS library with Netlib CBLAS interface such as [LAPACK](https://www.netlib.org/lapack) to be installed on system.
-
+Requires any BLAS library with Netlib CBLAS interface such as [LAPACK](https://www.netlib.org/lapack) to be installed on system.
 
 **CLBlast (GPU/OpenCL)**
 
@@ -201,10 +224,9 @@ This build enables tuned GPU acceleration via OpenCL with CLBlast
 make runclblast
 ```
 
-+ Requires [ClBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
+Requires [ClBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
 
 Note: Currently runs much slower than CPU! Requires investigation or memory is a bottle neck on the test system.
-
 
 ## Portable Binary Build
 
@@ -269,7 +291,27 @@ Else
 /run.com model.bin
 ```
 
-## contributing
+## TODO
+
+ [ ] CLI Chat
+ [ ] Web Chat
+ [ ] Fix baremetal cosmo boot model loading
+ [ ] Alt model embedding
+ [ ] NetBSD Rump Kernel Boot
+ [ ] GNU/Linux Linux Minimal Boot
+ [ ] EFI Capsule
+ [ ] OpenCL pure
+ [ ] Vulkan
+ [ ] CUDA
+ [ ] SIMD
+ [ ] Optimize OpenMP & OpenACC
+ [ ] Documentation
+ 
+## Changelog
+
+See commits.
+
+## Contributing
 
 - All pull requests that are merged to upstream will be automatically applied here as we closely mirror upstream. 
 - I merge pull requests that improves performance even if they are rejected upstream.

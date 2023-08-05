@@ -37,7 +37,11 @@ runfast: run.c
 # OMP_NUM_THREADS=4 ./run out/model.bin
 .PHONY: runomp
 runomp: run.c
-	$(CC) -Ofast -fopenmp -march=native run.c  -lm  -o run
+	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native run.c  -lm  -o run
+	
+.PHONY: runoacc
+runoacc: run.c
+	$(CC) -D OPENACC -Ofast -fopenacc -foffload-options="-Ofast -lm" -march=native run.c  -lm  -o run	
 
 .PHONY: win64
 win64: 
