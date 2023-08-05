@@ -43,13 +43,15 @@ Read more:
 - [x] OpenBLAS
 - [x] CBLAS
 - [x] BLIS
+- [ ] Intel MKL (WIP)
+- [ ] ArmPL (WIP)
 
 **CPU/GPU**
 
 - [x] OpenMP 
 - [x] OpenACC
 
-Both OpenMP and OpenACC builds currently use host CPU and not offload GPU.
+Both OpenMP and OpenACC builds currently use host CPU and do not offload GPU.
 
 **GPU**
 
@@ -336,6 +338,8 @@ Else
 - [ ] Alt model embedding
 - [ ] NetBSD Rump Kernel Boot
 - [ ] GNU/Linux Linux Minimal Boot
+- [ ] Intel MKL Acceleration (WIP)
+- [ ] Arm Performance Libraries (WIP)
 - [ ] EFI Capsule
 - [ ] OpenCL pure
 - [ ] Vulkan

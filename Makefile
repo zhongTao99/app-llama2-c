@@ -3,6 +3,9 @@
 BLIS_PREFIX = /usr/local
 BLIS_INC    = $(BLIS_PREFIX)/include/blis
 BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
+#  -L${MKLROOT}/lib/intel64 -lmkl_rt -Wl,--no-as-needed -lpthread -lm -ldl
+#  -m64  -I"${MKLROOT}/include" 
+
 
 # choose your compiler, e.g. gcc/clang
 # example override to clang: make run CC=clang
@@ -71,6 +74,14 @@ runblas: run.c
 .PHONY: runblis
 runblis: run.c
 	$(CC) -D BLIS -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run
+	
+.PHONY: runarmpl
+runarmpl: run.c
+	$(CC) -D ARMPL -Ofast -fopenmp -march=native run.c -lm -larmpl_lp64_mp -o run
+	
+.PHONY: runmkl
+runmkl: run.c
+	$(CC) -D MKL -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run	
 
 .PHONY: cosmorun
 cosmorun:

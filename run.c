@@ -38,7 +38,7 @@ __static_yoink("zipos");
 // ----------------------------------------------------------------------------
 // BLAS Support
 
-#if defined(CLBLAST) || defined(OPENBLAS) || defined(CBLAS) || defined(BLIS)
+#if defined(CLBLAST) || defined(OPENBLAS) || defined(CBLAS) || defined(BLIS) || defined(MKL) || defined(ARMPL)
 #define BLAS
 #endif
 
@@ -47,6 +47,10 @@ __static_yoink("zipos");
 #elif defined(BLIS)
 #include "blis.h"
 #include "cblas.h"
+#elif defined(MKL)
+#include "mkl.h"
+#elif defined(ARMPL)
+#include <armpl.h>
 #elif defined(OPENBLAS) || defined(CBLAS)
 #include <cblas.h>
 #endif
