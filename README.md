@@ -245,6 +245,24 @@ make runblis
 ```
 Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enable-cblas -t openmp,pthreads auto` to be installed on system.
 
+**Intel oneAPI MKL**
+
+This build enables acceleration via Intel® oneAPI Math Kernel Library
+
+```bash
+make runmkl
+```
+Requires [Intel oneAPI MKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) to be installed on system.
+
+**Arm Performance Library (ArmPL)**
+
+This build enables acceleration via Arm Performance Library
+
+```bash
+make runarmpl
+```
+Requires [ArmPL](https://developer.arm.com/Tools%20and%20Software/Arm%20Performance%20Libraries) to be installed on system.
+
 **Generic CBLAS**
 
 This build enables acceleration with any Netlib CBLAS interface compatible libraries
@@ -347,6 +365,7 @@ Else
 - [ ] SIMD
 - [ ] Optimize OpenMP & OpenACC
 - [ ] Documentation
+- [ ] Clang builds (Makefile)
  
 ## Changelog
 

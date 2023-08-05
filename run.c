@@ -58,10 +58,15 @@ __static_yoink("zipos");
 // ----------------------------------------------------------------------------
 // OpenMP and OpenACC Support
 
+// Macro that makes a pragma enabled with string substitution
+#define MKPRAGMA_(x) _Pragma (#x)
+#define MK_PRAGMA(x) MKPRAGMA_(x)
+
+// Portable OpenMP and OpenACC pragma macros
 #ifdef OPENMP
-#define OMP
+#define ACCEL(VAR) MK_PRAGMA(omp parallel for private(VAR))
 #elif defined(OPENACC)
-#define OACC
+#define ACCEL(VAR) MK_PRAGMA(acc parallel loop private(VAR))
 #endif
 
 // ----------------------------------------------------------------------------
@@ -265,11 +270,9 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
     cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1.0f, w, n, x, 1, 0.0f, xout, 1);
     #else
     int i;
-    #ifdef OMP
-    #pragma omp parallel for private(i)
-    #elif defined(OACC)
-    #pragma acc parallel loop private(i)
-    #endif
+    #ifdef ACCEL
+    ACCEL(i) // OMP/OACC Macro
+    #endif    
     for (i = 0; i < d; i++) {
         float val = 0.0f;
         for (int j = 0; j < n; j++) {
@@ -336,10 +339,8 @@ void transformer(int token, int pos, Config* p, RunState* s, TransformerWeights*
         
         // multihead attention. iterate over all heads
         int h;
-        #ifdef OMP
-        #pragma omp parallel for private(h)
-        #elif defined(OACC)
-        #pragma acc parallel loop private(h)
+        #ifdef ACCEL
+        ACCEL(h) // OMP/OACC Macro
         #endif
         for (h = 0; h < p->n_heads; h++) {
             // get the query vector for this head
