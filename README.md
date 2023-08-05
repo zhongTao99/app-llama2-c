@@ -14,13 +14,13 @@ Our goal is to mirror the progress of https://github.com/karpathy/llama2.c, add 
 
 ## Portability Features
 
-+ Executable that runs on
++ Single Executable that runs on
   + GNU/Systemd
   + BSD
   ++ FreeBSD
   ++ OpenBSD
   ++ NetBSD
-  + XNU's Not UNIX
+  + XNU's Not UNIX (Mac)
   + Bare Metal (Not fully functional yet but almost...)
   + Windows
 
@@ -29,26 +29,30 @@ Our goal is to mirror the progress of https://github.com/karpathy/llama2.c, add 
 + Standalone
   + Embedded model
 
-These features depend on a specific cosmocc toolchain: https://github.com/jart/cosmopolitan
+These combined features depend on a specific cosmocc toolchain: https://github.com/jart/cosmopolitan
 
 Building this with gcc or clang would result in normal binaries similar to upstream.
 
 Read more:
 [How to build](https://github.com/trholding/llama2.c#portable-binary-build)
 
-### Performance feature support
-+ CPU
+### Performance Features
+
+**CPU**
+
 - [x] OpenBLAS
 - [x] CBLAS
 - [x] BLIS
 
-CPU/GPU
+**CPU/GPU**
+
 - [x] OpenMP 
 - [x] OpenACC
 
-Both OpenMP and OpenACC builds currently use CPU and not GPU.
+Both OpenMP and OpenACC builds currently use host CPU and not offload GPU.
 
-+ GPU
+**GPU**
+
 - [x] OpenCL (via CLBlast)
 - [ ] Vulkan
 - [ ] CUDA
@@ -57,8 +61,8 @@ Download the prebuilt run.com binary from releases
 
 ## llama2.c
 
-<p align="center">
-  <img src="assets/llama_cute.jpg" width="300" height="300" alt="Cute Llama">
+<p align="left">
+  <img src="assets/llama_cute.jpg" width="150" height="150" alt="Cute Llama">
 </p>
 
 A friendly fork of the excellent [llama2.c](https://github.com/karpathy/llama2.c)
@@ -103,7 +107,40 @@ The upstream project owner trained the llama2.c storyteller models on a 4X A100 
 ```bash
 ./run llama2_7b.bin
 ```
-Converted **Meta's Llama 2 7b** model cab be infered at a slow speed.
+A converted **Meta's Llama 2 7b** model can be inferenced at a slow speed.
+
+## Usage
+
+**Full Usage**
+
+```bash
+./run <checkpoint_file> -t [temperature] -s [steps] -b [buffertokens] -p [prompt]
+```
+
+Where 
+ 
+ <checkpoint_file> is the **mandatory** checkpoint / model file.\
+  E.g. `stories15M.bin` or `stories42M.bin` or `stories110M.bin`.
+ 
+ -t is the *optional* temperature in the range `0.0` to `1.0` and a default of **0.9**.\
+  `0` makes outputs with same or no prompt reproducible.
+ 
+ -s is the *optional* number of steps in the range `1` to `256` and a default of **256**.\
+  `0` sets it to context length of model.\
+  This option defines the number of tokens to infer and output.
+  
+ -b is the *optional* number of tokens to buffer from a range 1 to context length and a default of **1**.\
+  `0` sets it to context length of model.\
+  This increases the interactive performance. Use values such as `4`, `8`, `16`, `32`, `64`, `128` ... YMMV!
+ 
+ -p is the *optional* prompt such as `"A car"` to pass on to guide inference.\
+  If omitted the model will infer on its own.
+
+**Minimal Usage**
+
+```bash
+./run <checkpoint_file>
+```
 
 ## Platforms
 
@@ -195,7 +232,7 @@ This build enables acceleration via OpenBLAS
 make runopenblas
 ```
 
-Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS)to be installed on system.
+Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS) to be installed on system.
 
 **BLIS**
 
@@ -293,19 +330,19 @@ Else
 
 ## TODO
 
- [ ] CLI Chat
- [ ] Web Chat
- [ ] Fix baremetal cosmo boot model loading
- [ ] Alt model embedding
- [ ] NetBSD Rump Kernel Boot
- [ ] GNU/Linux Linux Minimal Boot
- [ ] EFI Capsule
- [ ] OpenCL pure
- [ ] Vulkan
- [ ] CUDA
- [ ] SIMD
- [ ] Optimize OpenMP & OpenACC
- [ ] Documentation
+- [ ] CLI Chat
+- [ ] Web Chat
+- [ ] Fix baremetal cosmo boot model loading
+- [ ] Alt model embedding
+- [ ] NetBSD Rump Kernel Boot
+- [ ] GNU/Linux Linux Minimal Boot
+- [ ] EFI Capsule
+- [ ] OpenCL pure
+- [ ] Vulkan
+- [ ] CUDA
+- [ ] SIMD
+- [ ] Optimize OpenMP & OpenACC
+- [ ] Documentation
  
 ## Changelog
 
