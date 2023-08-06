@@ -84,7 +84,7 @@ wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin
 You can also prompt the model with a prefix:
 
 ```bash
-./run stories42M.bin -t 1.0 -s 256 -p "A big dog"
+./run stories42M.bin -t 0.8 -n 256 -i "A big dog"
 ```
 
 When prompting, the temperature and steps parameters are needed since we use simple positional arguments.
@@ -106,6 +106,7 @@ The original author trained a series of small models on TinyStories, which took 
 
 The upstream project owner trained the llama2.c storyteller models on a 4X A100 40GB box provided by [Lambda labs](https://lambdalabs.com/service/gpu-cloud).
 
+Quick note on sampling, the recommendation for good results is to use `-t 1.0 -p 0.9`, i.e. top-p sampling at 0.9 with temperature 1.0 (this is the default). To control the diversity of samples use either the temperature (i.e. vary `-t` between 0 and 1 and keep top-p off with `-p 0`) or the top-p value (i.e. vary `-p` between 0 and 1 and keep `-t 1`), but not both. Nice explainers on LLM sampling strategies include [this](https://peterchng.com/blog/2023/05/02/token-selection-strategies-top-k-top-p-and-temperature/), [this](https://docs.cohere.com/docs/controlling-generation-with-top-k-top-p) or [this](https://huggingface.co/blog/how-to-generate).
 
 ```bash
 ./run llama2_7b.bin
@@ -128,7 +129,7 @@ Where
  -t is the *optional* temperature in the range `0.0` to `1.0` and a default of **0.9**.\
   `0` makes outputs with same or no prompt reproducible.
  
- -s is the *optional* number of steps in the range `1` to `256` and a default of **256**.\
+ -n is the *optional* number of steps in the range `1` to `256` and a default of **256**.\
   `0` sets it to context length of model.\
   This option defines the number of tokens to infer and output.
   
@@ -136,7 +137,7 @@ Where
   `0` sets it to context length of model.\
   This increases the interactive performance. Use values such as `4`, `8`, `16`, `32`, `64`, `128` ... YMMV!
  
- -p is the *optional* prompt such as `"A car"` to pass on to guide inference.\
+ -i is the *optional* input prompt such as `"A car"` to pass on to guide inference.\
   If omitted the model will infer on its own.
 
 **Minimal Usage**
