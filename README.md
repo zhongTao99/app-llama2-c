@@ -45,6 +45,7 @@ Read more:
 - [x] BLIS
 - [ ] Intel MKL (WIP)
 - [ ] ArmPL (WIP)
+- [x] Apple Accelerate Framework (CBLAS)
 
 **CPU/GPU**
 
@@ -247,7 +248,7 @@ Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enab
 
 **Intel oneAPI MKL**
 
-This build enables acceleration via Intel® oneAPI Math Kernel Library
+This build enables acceleration via Intel® oneAPI Math Kernel Library on x86_64 systems and Intel Mac OS - WIP
 
 ```bash
 make runmkl
@@ -256,12 +257,23 @@ Requires [Intel oneAPI MKL](https://www.intel.com/content/www/us/en/developer/to
 
 **Arm Performance Library (ArmPL)**
 
-This build enables acceleration via Arm Performance Library
+This build enables acceleration via Arm Performance Library on ARM64 systems such as Linux or Mac OS - WIP
 
 ```bash
 make runarmpl
 ```
 Requires [ArmPL](https://developer.arm.com/Tools%20and%20Software/Arm%20Performance%20Libraries) to be installed on system.
+
+**Apple Accelerate**
+
+This build enables BLAS acceleration via Apple Accelerate on Mac OS
+
+```bash
+make runaccel
+```
+Requires [Apple Accelerate](https://developer.apple.com/accelerate/) to be available on system.
+
+Note: Needs testing.
 
 **Generic CBLAS**
 
@@ -281,9 +293,9 @@ This build enables tuned GPU acceleration via OpenCL with CLBlast
 make runclblast
 ```
 
-Requires [ClBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
+Requires [CLBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
 
-Note: Currently runs much slower than CPU! Requires investigation or memory is a bottle neck on the test system.
+Note: Currently runs much slower than CPU! Requires investigation or memory I/O is a bottle neck on the test system.
 
 ## Portable Binary Build
 
@@ -358,14 +370,20 @@ Else
 - [ ] GNU/Linux Linux Minimal Boot
 - [ ] Intel MKL Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
+- [x] Apple Accelerate BLAS (WIP)
 - [ ] EFI Capsule
 - [ ] OpenCL pure
 - [ ] Vulkan
 - [ ] CUDA
 - [ ] SIMD
-- [ ] Optimize OpenMP & OpenACC
-- [ ] Documentation
+- [x] Optimize OpenMP & OpenACC (WIP)
+- [X] Documentation (WIP)
 - [ ] Clang builds (Makefile)
+- [ ] Quantization (16, 4 , 2)
+- [ ] Minimize Code
+- [ ] Split extras into conditional header file
+- [ ] Update workflow C/I
+- [ ] Apply changes to closely resemble upstream
  
 ## Changelog
 

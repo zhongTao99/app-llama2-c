@@ -83,6 +83,10 @@ runarmpl: run.c
 runmkl: run.c
 	$(CC) -D MKL -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run	
 
+.PHONY: runaccel
+runaccel: run.c
+	$(CC) -D AAF -Ofast -fopenmp -march=native run.c -lm -framework Accelerate -o run
+
 .PHONY: cosmorun
 cosmorun:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com
