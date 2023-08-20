@@ -267,7 +267,7 @@ Requires [ArmPL](https://developer.arm.com/Tools%20and%20Software/Arm%20Performa
 
 **Apple Accelerate**
 
-This build enables BLAS acceleration via Apple Accelerate on Mac OS
+This build enables BLAS acceleration via Apple Accelerate on Mac OS - Testing
 
 ```bash
 make runaccel
@@ -367,24 +367,26 @@ Else
 - [ ] Web Chat
 - [ ] Fix baremetal cosmo boot model loading
 - [ ] Alt model embedding
-- [ ] NetBSD Rump Kernel Boot
+- [ ] NetBSD Rump Kernel Boot (R&D)
+- [ ] Unikraft unikernel Boot (R&D)
 - [ ] GNU/Linux Linux Minimal Boot
 - [ ] Intel MKL Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
-- [x] Apple Accelerate BLAS (WIP)
+- [x] Apple Accelerate BLAS (Testing)
 - [ ] EFI Capsule
 - [ ] OpenCL pure
 - [ ] Vulkan
 - [ ] CUDA
-- [ ] SIMD
+- [ ] OpenMP SIMD?
 - [x] Optimize OpenMP & OpenACC (WIP)
 - [X] Documentation (WIP)
 - [ ] Clang builds (Makefile)
 - [ ] Quantization (16, 4 , 2)
 - [ ] Minimize Code
 - [ ] Split extras into conditional header file
-- [ ] Update workflow C/I
+- [ ] Update Github CI/CD workflow
 - [ ] Apply changes to closely resemble upstream
+- [ ] Raspi Zero Demo
  
 ## Changelog
 
@@ -395,6 +397,12 @@ See commits.
 - All pull requests that are merged to upstream will be automatically applied here as we closely mirror upstream. 
 - I merge pull requests that improves performance even if they are rejected upstream.
 - Performance and usability improvement contriubutions are welcome.
+
+## Developer Status
+
+See "Developer Status" issue.
+
+Current status: Busy since Aug ~6 2023, away on bigger IRL projects. Just merging stuff. Addressing all issues after ~7 days.
 
 ## Notable projects
 - [llama.cpp](https://github.com/ggerganov/llama.cpp)
