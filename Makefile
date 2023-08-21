@@ -97,6 +97,14 @@ runcosmo:
 runboot:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D INC_BIN -D MODPATH=out/model.bin run.c -lm -o run.com
 
+.PHONY: runboot2
+runboot2:
+	# Uses https://github.com/mortie/strliteral to embed files
+	gcc -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data out/model.bin model.h
+	./strlit -i emb_Tokenizer_data tokenizer.bin tokenizer.h
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D STRLIT run.c -lm -o run.com
+
 # run all tests
 .PHONY: test
 test:
@@ -109,4 +117,4 @@ testc:
 
 .PHONY: clean
 clean:
-	rm -f run
+	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~

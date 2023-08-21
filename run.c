@@ -1,4 +1,95 @@
-/* Inference for Llama-2 Transformer model in pure C */
+/* Inference for Llama-2 Transformer model in pure C 
+   The Llama 2 Everywhere @trholding (Vulcan) fork   */
+
+// ----------------------------------------------------------------------------
+// INCBIN Embedding Support Directives
+// https://github.com/graphitemaster/incbin
+
+// String substitution macro needed to pass paths to INCBIN
+#define ADDPATH(FPATH) TOSTR(FPATH)
+#define TOSTR(FPATH) #FPATH
+
+#ifdef INC_BIN // Support for embedding model and tokenizer
+
+#define INCBIN_PREFIX emb_
+#define INCBIN_STYLE INCBIN_STYLE_SNAKE
+#include "incbin.h"
+
+#ifndef MODPATH
+#define MODPATH out/model.bin // default model path
+#endif
+#ifndef TOKPATH
+#define TOKPATH tokenizer.bin // default tokenizer path
+#endif
+
+INCBIN(Model, ADDPATH(MODPATH)); // Model path is passed via makefile
+INCBIN(Tokenizer, ADDPATH(TOKPATH)); // Tokenizer path is passed via makefile
+
+#endif
+
+// ----------------------------------------------------------------------------
+// strliteral (STRLIT) Embedding Support Directives
+// https://github.com/mortie/strliteral
+
+#ifdef STRLIT
+#include "model.h"
+#include "tokenizer.h"
+#endif
+
+// ----------------------------------------------------------------------------
+// Actually Portable Executable Format Preprocessor Directives
+
+#ifdef COSMO_BLINK // Support ARM 64 Bit via Blink VM Emulation
+__static_yoink("blink_linux_aarch64");  // for raspberry pi
+__static_yoink("blink_xnu_aarch64");    // is apple silicon
+#endif
+
+#ifdef COSMO_METAL // Support VGA Console when running bare metal
+__static_yoink("vga_console");
+#endif
+
+#ifdef COSMO_ZIP // Support embedded models via Zip Archive support
+__static_yoink("zipos");
+#endif
+
+// ----------------------------------------------------------------------------
+// BLAS Support
+
+#if defined(CLBLAST) || defined(OPENBLAS) || defined(CBLAS) || defined(BLIS) || defined(MKL) || defined(ARMPL) || defined(AAF)
+#define BLAS
+#endif
+
+#ifdef CLBLAST
+#include <clblast_netlib_c.h>
+#elif defined(BLIS)
+#include "blis.h"
+#include "cblas.h"
+#elif defined(MKL)
+#include "mkl.h"
+#elif defined(ARMPL)
+#include <armpl.h>
+#elif defined(AAF)
+#include <Accelerate/Accelerate.h>
+#elif defined(OPENBLAS) || defined(CBLAS)
+#include <cblas.h>
+#endif
+
+// ----------------------------------------------------------------------------
+// OpenMP and OpenACC Support
+
+// Macro that makes a pragma enabled with string substitution
+#define MKPRAGMA_(x) _Pragma (#x)
+#define MK_PRAGMA(x) MKPRAGMA_(x)
+
+// Portable OpenMP and OpenACC pragma macros
+#ifdef OPENMP
+#define ACCEL(VAR) MK_PRAGMA(omp parallel for private(VAR))
+#elif defined(OPENACC)
+#define ACCEL(VAR) MK_PRAGMA(acc parallel loop private(VAR))
+#endif
+
+// ----------------------------------------------------------------------------
+// Standard Headers
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -142,6 +233,21 @@ void memory_map_weights(TransformerWeights *w, Config* p, float* ptr, int shared
     w->wcls = shared_weights ? w->token_embedding_table : ptr;
 }
 
+
+#if defined (INC_BIN) || defined(STRLIT)
+void read_checkpoint(char* checkpoint, Config* config, TransformerWeights* weights, 
+                     int* fd, float** data, ssize_t* file_size) {
+    // read config header directly from the checkpoint data
+    memcpy(config, checkpoint, sizeof(Config));
+    int shared_weights = config->vocab_size > 0 ? 1 : 0;
+    config->vocab_size = abs(config->vocab_size);
+    *file_size = strlen(checkpoint); // get the data size, in bytes
+    // memory map the Transformer weights
+    *data = (float*)(checkpoint + sizeof(Config));    
+    float* weights_ptr = *data;
+    memory_map_weights(weights, config, weights_ptr, shared_weights);
+}
+#else
 void read_checkpoint(char* checkpoint, Config* config, TransformerWeights* weights,
                      int* fd, float** data, ssize_t* file_size) {
     FILE *file = fopen(checkpoint, "rb");
@@ -163,6 +269,7 @@ void read_checkpoint(char* checkpoint, Config* config, TransformerWeights* weigh
     float* weights_ptr = *data + sizeof(Config)/sizeof(float);
     memory_map_weights(weights, config, weights_ptr, shared_weights);
 }
+#endif
 
 void build_transformer(Transformer *t, char* checkpoint_path) {
     // read in the Config and the Weights from the checkpoint
@@ -185,9 +292,13 @@ void free_transformer(Transformer* t) {
 void rmsnorm(float* o, float* x, float* weight, int size) {
     // calculate sum of squares
     float ss = 0.0f;
+    #ifdef BLAS
+    ss = cblas_sdot(size, x, 1.0f, x, 1.0f);
+    #else
     for (int j = 0; j < size; j++) {
         ss += x[j] * x[j];
     }
+    #endif
     ss /= size;
     ss += 1e-5f;
     ss = 1.0f / sqrtf(ss);
@@ -220,8 +331,13 @@ void softmax(float* x, int size) {
 void matmul(float* xout, float* x, float* w, int n, int d) {
     // W (d,n) @ x (n,) -> xout (d,)
     // by far the most amount of time is spent inside this little function
+    #ifdef BLAS
+    cblas_sgemv(CblasRowMajor, CblasNoTrans, d, n, 1.0f, w, n, x, 1, 0.0f, xout, 1);
+    #else
     int i;
-    #pragma omp parallel for private(i)
+    #ifdef ACCEL
+    ACCEL(i) // OMP/OACC Macro
+    #endif
     for (i = 0; i < d; i++) {
         float val = 0.0f;
         for (int j = 0; j < n; j++) {
@@ -229,6 +345,7 @@ void matmul(float* xout, float* x, float* w, int n, int d) {
         }
         xout[i] = val;
     }
+    #endif
 }
 
 float* forward(Transformer* transformer, int token, int pos) {
@@ -285,7 +402,9 @@ float* forward(Transformer* transformer, int token, int pos) {
 
         // multihead attention. iterate over all heads
         int h;
-        #pragma omp parallel for private(h)
+        #ifdef ACCEL
+        ACCEL(h) // OMP/OACC Macro
+        #endif
         for (h = 0; h < p->n_heads; h++) {
             // get the query vector for this head
             float* q = s->q + h * head_size;
@@ -377,6 +496,39 @@ typedef struct {
     char byte_piece[2];
 } Tokenizer;
 
+
+#if defined (INC_BIN) || defined(STRLIT)
+void build_tokenizer(Tokenizer* t, char* tokenizer_path, int vocab_size) {
+    t->vocab_size = vocab_size;
+    t->vocab = (char**)malloc(vocab_size * sizeof(char*));
+    t->vocab_scores = (float*)malloc(vocab_size * sizeof(float));
+    t->byte_piece[1] = '\0'; // null terminate the byte_piece string
+    // Parse the data from tokenizer_path
+    char* token_data = tokenizer_path;
+    int token_data_offset = 0;
+
+    // Read the max_token_length from token_data
+    memcpy(&t->max_token_length, token_data, sizeof(int));
+    token_data_offset += sizeof(int);
+
+    int len;
+    for (int i = 0; i < vocab_size; i++) {
+        // Read the vocab_scores from token_data
+        memcpy(t->vocab_scores + i, token_data + token_data_offset, sizeof(float));
+        token_data_offset += sizeof(float);
+
+        // Read the length of the vocabulary token
+        memcpy(&len, token_data + token_data_offset, sizeof(int));
+        token_data_offset += sizeof(int);
+
+        // Allocate memory for the vocabulary token and copy the data
+        t->vocab[i] = (char*)malloc(len + 1);
+        memcpy(t->vocab[i], token_data + token_data_offset, len);
+        t->vocab[i][len] = '\0'; // add the string terminating token
+        token_data_offset += len;
+    }
+}
+#else
 void build_tokenizer(Tokenizer* t, char* tokenizer_path, int vocab_size) {
     // i should have written the vocab_size into the tokenizer file... sigh
     t->vocab_size = vocab_size;
@@ -398,6 +550,7 @@ void build_tokenizer(Tokenizer* t, char* tokenizer_path, int vocab_size) {
     }
     fclose(file);
 }
+#endif
 
 void free_tokenizer(Tokenizer* t) {
     for (int i = 0; i < t->vocab_size; i++) { free(t->vocab[i]); }
@@ -699,6 +852,7 @@ void error_usage() {
     fprintf(stderr, "  -p <float>  p value in top-p (nucleus) sampling. default 0.9\n");
     fprintf(stderr, "  -s <int>    random seed, default time(NULL)\n");
     fprintf(stderr, "  -n <int>    number of steps to run for, default 256. 0 = max_seq_len\n");
+    fprintf(stderr, "  -b <int>    number of tokens to buffer, default 1. 0 = max_seq_len\n");    
     fprintf(stderr, "  -i <string> input prompt\n");
     fprintf(stderr, "  -z <string> optional path to custom tokenizer\n");
     exit(EXIT_FAILURE);
@@ -714,7 +868,25 @@ int main(int argc, char *argv[]) {
     rng_seed = 0; // seed rng with time by default
     int steps = 256;          // number of steps to run for
     char *prompt = NULL;      // prompt string
-
+    int buffertokens = 1;     // output token buffer size
+    
+    #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT) // special case for embedded models
+    // we read the embedded checkpoint from within the executable
+    // 'checkpoint' is necessary arg
+    #if defined(COSMO_ZIP)
+    checkpoint_path = "/zip/out/model.bin";
+    tokenizer_path = "/zip/tokenizer.bin";
+    #elif defined(INC_BIN) || defined(STRLIT)
+    checkpoint_path = emb_Model_data;
+    tokenizer_path = emb_Tokenizer_data;
+    #endif
+    buffertokens=32;
+    char promptbuffer[1024]; // Buffer for prompt 
+    printf("LLAMA2 Prompt: ");
+    fflush(stdout);
+    scanf("%s", promptbuffer); // Read prompt
+    prompt=promptbuffer; // Set prompt
+    #else
     // poor man's C argparse so we can override the defaults above from the command line
     if (argc >= 2) { checkpoint_path = argv[1]; } else { error_usage(); }
     for (int i = 2; i < argc; i+=2) {
@@ -727,10 +899,13 @@ int main(int argc, char *argv[]) {
         else if (argv[i][1] == 'p') { topp = atof(argv[i + 1]); }
         else if (argv[i][1] == 's') { rng_seed = atoi(argv[i + 1]); }
         else if (argv[i][1] == 'n') { steps = atoi(argv[i + 1]); }
+        else if (argv[i][1] == 'b') { buffertokens = atoi(argv[i + 1]); }	
         else if (argv[i][1] == 'i') { prompt = argv[i + 1]; }
         else if (argv[i][1] == 'z') { tokenizer_path = argv[i + 1]; }
         else { error_usage(); }
     }
+    #endif
+    
     if(rng_seed == 0) { rng_seed = (unsigned int)time(NULL);}
 
     // build the Transformer via the model .bin file
@@ -758,6 +933,15 @@ int main(int argc, char *argv[]) {
     int next;        // will store the next token in the sequence
     int token = 1;   // init with token 1 (=BOS), as done in Llama-2 sentencepiece tokenizer
     int pos = 0;     // position in the sequence
+    int bufferflush = 1; // token counter for flushing buffer
+    static char outbuff[4096 * (6 + 2)] ; // buffersize is context length * average size of subwords + margin
+    
+    // Todo: we can do buffering without setvbuff, implement that
+    // setvbuf is used to buffer output into outbuff instead of flushing to screen directly
+    if (setvbuf(stdout, outbuff, _IOFBF, sizeof(outbuff)) != 0) {
+    puts("Error: Buffer allocation!"); exit(EXIT_FAILURE);
+    }
+    
     while (pos < steps) {
 
         // forward the transformer to get logits for the next token
@@ -779,18 +963,19 @@ int main(int argc, char *argv[]) {
         // print the token as string, decode it with the Tokenizer object
         char* piece = decode(&tokenizer, token, next);
         printf("%s", piece);
-        fflush(stdout);
+        if (bufferflush==pos) { fflush(stdout); bufferflush+=buffertokens; } 
         token = next;
 
         // init the timer here because the first iteration can be slower
         if (start == 0) { start = time_in_ms(); }
     }
     printf("\n");
-
+    fflush(stdout); // This could be in the if next break, and the print new line prepended to achieved tok/s
+    
     // report achieved tok/s (pos-1 because the timer starts after first iteration)
     if (pos > 1) {
         long end = time_in_ms();
-        fprintf(stderr, "achieved tok/s: %f\n", (pos-1) / (double)(end-start)*1000);
+        fprintf(stderr, "achieved tok/s: %f\n", (pos-1) / (double)(end-start)*1000); // /n 
     }
 
     // memory and file handles cleanup
