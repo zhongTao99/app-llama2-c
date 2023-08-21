@@ -87,11 +87,15 @@ runmkl: run.c
 runaccel: run.c
 	$(CC) -D AAF -Ofast -fopenmp -march=native run.c -lm -framework Accelerate -o run
 
-.PHONY: cosmorun
-cosmorun:
+.PHONY: runcosmo
+runcosmo:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com
 	zip run.com out/model.bin
 	zip run.com tokenizer.bin
+	
+.PHONY: runboot
+runboot:
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D INC_BIN -D MODPATH=out/model.bin run.c -lm -o run.com
 
 # run all tests
 .PHONY: test

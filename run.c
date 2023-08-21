@@ -1,5 +1,31 @@
 /* Inference for Llama-2 Transformer model in pure C 
-The Llama 2 Everywhere fork */
+The Llama 2 Everywhere @trholding (Vulcan) fork */
+
+
+// ----------------------------------------------------------------------------
+// INCBIN Support Directives
+
+// String substitution macro needed to pass paths to INCBIN
+#define ADDPATH(FPATH) TOSTR(FPATH)
+#define TOSTR(FPATH) #FPATH
+
+#ifdef INC_BIN // Support for embedding model and tokenizer
+
+#define INCBIN_PREFIX emb_
+#define INCBIN_STYLE INCBIN_STYLE_SNAKE
+#include "incbin.h"
+
+#ifndef MODPATH
+#define MODPATH out/model.bin // default model path
+#endif
+#ifndef TOKPATH
+#define TOKPATH tokenizer.bin // default tokenizer path
+#endif
+
+INCBIN(Model, ADDPATH(MODPATH)); // Model path is passed via makefile
+INCBIN(Tokenizer, ADDPATH(TOKPATH)); // Tokenizer path is passed via makefile
+
+#endif
 
 // ----------------------------------------------------------------------------
 // Actually Portable Executable Format Preprocessor Directives
@@ -661,7 +687,7 @@ int main(int argc, char *argv[]) {
     char *prompt = NULL;      // prompt string
     int buffertokens = 1;     // output token buffer size
     
-    #ifdef COSMO_ZIP // if this is defined
+    #if defined(COSMO_ZIP) || defined(INC_BIN) // special case for embedded models
     // we read the embedded checkpoint from within the executable
     // 'checkpoint' is necessary arg
     checkpoint = "/zip/out/model.bin" ;
@@ -726,7 +752,7 @@ int main(int argc, char *argv[]) {
     float* vocab_scores = (float*)malloc(config.vocab_size * sizeof(float));
     unsigned int max_token_length;
     {
-        #ifdef COSMO_ZIP // if this is defined 
+        #if defined(COSMO_ZIP) || defined(INC_BIN) // special case for embedded tokenizer
         // we read the embedded tokenizer.bin from within the executable
         FILE *file = fopen("/zip/tokenizer.bin", "rb");
         #else
