@@ -3,6 +3,11 @@
 BLIS_PREFIX = /usr/local
 BLIS_INC    = $(BLIS_PREFIX)/include/blis
 BLIS_LIB    = $(BLIS_PREFIX)/lib/libblis.a
+
+# Model / Tokenizer Paths
+MOD_PATH    = out/model.bin
+TOK_PATH    = tokenizer.bin
+
 #  -L${MKLROOT}/lib/intel64 -lmkl_rt -Wl,--no-as-needed -lpthread -lm -ldl
 #  -m64  -I"${MKLROOT}/include" 
 
@@ -90,20 +95,33 @@ runaccel: run.c
 .PHONY: runcosmo
 runcosmo:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com
-	zip run.com out/model.bin
-	zip run.com tokenizer.bin
+	zip run.com $(MOD_PATH)
+	zip run.com $(TOK_PATH)
 	
-.PHONY: runboot
-runboot:
-	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D INC_BIN -D MODPATH=out/model.bin run.c -lm -o run.com
+.PHONY: runcincbin
+runcincbin:
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c -lm -o run.com
 
-.PHONY: runboot2
-runboot2:
+.PHONY: runcstrlit
+runcstrlit:
 	# Uses https://github.com/mortie/strliteral to embed files
 	gcc -Ofast strliteral.c -o strlit
-	./strlit -i emb_Model_data out/model.bin model.h
-	./strlit -i emb_Tokenizer_data tokenizer.bin tokenizer.h
-	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D STRLIT run.c -lm -o run.com
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D STRLIT -D LLOOP run.c -lm -o run.com
+	
+.PHONY: runompincbin
+runompincbin: run.c
+	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
+
+.PHONY: runompstrlit
+runompstrlit: run.c
+	# Uses https://github.com/mortie/strliteral to embed files
+	gcc -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
+	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D STRLIT -D LLOOP run.c  -lm  -o run	
+
 
 # run all tests
 .PHONY: test

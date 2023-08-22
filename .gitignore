@@ -4,3 +4,6 @@ run
 run.com.dbg
 run.com
 a.out
+strlit
+tokenizer.h
+model.h

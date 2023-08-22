@@ -852,7 +852,8 @@ void error_usage() {
     fprintf(stderr, "  -p <float>  p value in top-p (nucleus) sampling in [0,1] default 0.9\n");
     fprintf(stderr, "  -s <int>    random seed, default time(NULL)\n");
     fprintf(stderr, "  -n <int>    number of steps to run for, default 256. 0 = max_seq_len\n");
-    fprintf(stderr, "  -b <int>    number of tokens to buffer, default 1. 0 = max_seq_len\n");    
+    fprintf(stderr, "  -b <int>    number of tokens to buffer, default 1. 0 = max_seq_len\n");
+    fprintf(stderr, "  -x <int>    extended info / stats, default 1 = on. 0 = off\n");    
     fprintf(stderr, "  -i <string> input prompt\n");
     fprintf(stderr, "  -z <string> optional path to custom tokenizer\n");
     exit(EXIT_FAILURE);
@@ -869,6 +870,8 @@ int main(int argc, char *argv[]) {
     int steps = 256;          // number of steps to run for
     char *prompt = NULL;      // prompt string
     int buffertokens = 1;     // output token buffer size
+    int stats = 1;     // extended status info
+    
     
     #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT) // special case for embedded models
     // we read the embedded checkpoint from within the executable
@@ -880,11 +883,15 @@ int main(int argc, char *argv[]) {
     checkpoint_path = emb_Model_data;
     tokenizer_path = emb_Tokenizer_data;
     #endif
-    buffertokens=32;
+    buffertokens=16;
     char promptbuffer[1024]; // Buffer for prompt 
+    #ifdef LLOOP
+    stats = 0;
+    while(1) { // start of loop
+    #endif
     printf("LLAMA2 Prompt: ");
     fflush(stdout);
-    scanf("%s", promptbuffer); // Read prompt
+    scanf("%[^\n]%*c",promptbuffer); // Read prompt
     prompt=promptbuffer; // Set prompt
     #else
     // poor man's C argparse so we can override the defaults above from the command line
@@ -899,7 +906,8 @@ int main(int argc, char *argv[]) {
         else if (argv[i][1] == 'p') { topp = atof(argv[i + 1]); }
         else if (argv[i][1] == 's') { rng_seed = atoi(argv[i + 1]); }
         else if (argv[i][1] == 'n') { steps = atoi(argv[i + 1]); }
-        else if (argv[i][1] == 'b') { buffertokens = atoi(argv[i + 1]); }	
+        else if (argv[i][1] == 'b') { buffertokens = atoi(argv[i + 1]); }
+        else if (argv[i][1] == 'x') { stats = atoi(argv[i + 1]); }
         else if (argv[i][1] == 'i') { prompt = argv[i + 1]; }
         else if (argv[i][1] == 'z') { tokenizer_path = argv[i + 1]; }
         else { error_usage(); }
@@ -945,7 +953,7 @@ int main(int argc, char *argv[]) {
     if (setvbuf(stdout, outbuff, _IOFBF, sizeof(outbuff)) != 0) {
     puts("Error: Buffer allocation!"); exit(EXIT_FAILURE);
     }
-    
+
     while (pos < steps) {
 
         // forward the transformer to get logits for the next token
@@ -975,11 +983,10 @@ int main(int argc, char *argv[]) {
     }
     printf("\n");
     fflush(stdout); // This could be in the if next break, and the print new line prepended to achieved tok/s
-    
     // report achieved tok/s (pos-1 because the timer starts after first iteration)
     if (pos > 1) {
         long end = time_in_ms();
-        fprintf(stderr, "achieved tok/s: %f\n", (pos-1) / (double)(end-start)*1000); // /n 
+        if(stats){ fprintf(stderr, "achieved tok/s: %f\n", (pos-1) / (double)(end-start)*1000); } 
     }
 
     // memory and file handles cleanup
@@ -987,5 +994,11 @@ int main(int argc, char *argv[]) {
     free_sampler(&sampler);
     free_tokenizer(&tokenizer);
     free_transformer(&transformer);
+    #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT) 
+    #ifdef LLOOP
+    printf("\n");
+    } // end of loop
+    #endif
+    #endif    
     return 0;
 }
