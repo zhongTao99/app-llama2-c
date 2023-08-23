@@ -1,35 +1,43 @@
-## Llama 2 Everywhere
+## Llama 2 Everywhere (L2E)
 
 <p align="center">
   <img src="assets/llamas_everywhere.jpg" width="600" height="454" alt="LLamas Everywhere!">
 </p>
 
-Standalone and 64bit Binary Portable Llama 2 Inference in one file of C
+Standalone, Binary Portable, Bootable Llama 2
+
+The primary objective of Llama 2 Everywhere (L2E) is to ensure its compatibility across a wide range of devices, from booting on repurposed chromebooks discarded by school districts to high-density unikernel deployments in enterprises. 
+
+We believe that in future by harnessing a legion of small specialized LLMs with modest hardware requirements which are networked, distributed, and self-coordinated, L2E has the potential to democratize access to AI and unlock collective intelligence that surpasses that of a single large LLM.
+
+The current compelling use case of L2E involves training small models on diverse textual sources, including textbooks, open books, and comprehensive corpora like the SlimPajama corpus. These trained models can be deployed using L2E, enabling them to run as bootable instances on outdated school computers. This deployment scenario proves particularly valuable in school libraries or classrooms where internet connectivity is limited or unavailable, serving as an information gateway for students without constant reliance on the internet.
+
+By pursuing the vision of Llama 2 Everywhere, we aim to create an inclusive AI ecosystem that can adapt to diverse environments and empower individuals and communities on a global scale.
+
+My research goal is to train models using various hardware telemetry data with the hope that the models learn to interpret sensor inputs and control actuators based on the insights they glean from the sensor inputs. This research direction may open up exciting possibilities in fields such as automation, space, robotics and IoT, where L2E can play a pivotal role in bridging the gap between AI and physical systems.
+
 
 A friendly fork of the excellent [llama2.c](https://github.com/karpathy/llama2.c)
 
-Our goal is to mirror the progress of https://github.com/karpathy/llama2.c, add improvements such as as OpenCL / Vulkan GPU inference, webserver etc which certainly would not fit in the upstream do to the minimal / simplicity / elegance requirements constraints there.
+I will be mirrorring the progress of https://github.com/karpathy/llama2.c every week, add portability, performance improvements and convenience features such as a web interface which certainly would not fit in the upstream do to the minimalistic elegance requirements there.
 
 # Features
 
 ## Portability Features
 
-+ Single Executable that runs on
-  + GNU/Systemd
-  + BSD
-  ++ FreeBSD
-  ++ OpenBSD
-  ++ NetBSD
-  + XNU's Not UNIX (Mac)
-  + Bare Metal (Not fully functional yet but almost...)
-  + Windows
-
-+ Runs on ARM64 (aarch64), x86_64
++ Single Executable that runs on any x86_64 OS (cosmocc builds)
+- [x] GNU Linux 
+- [x] GNU/Systemd
+- [x] *BSD (NetBSD, OpenBSD, FreeBSD)
+- [x] XNU's Not UNIX (Mac)
+- [x] Bare Metal Boot (BIOS & EFI) (Not fully functional yet but almost...)
+- [x] Windows
+- [x] Runs on ARM64 via inbuilt BLINK emulation
 
 + Standalone
-  + Embedded model
+- [x] Embedded model and tokenizer via ZipOS (cosmocc), INCBIN, strliteral
 
-These combined features depend on a specific cosmocc toolchain: https://github.com/jart/cosmopolitan
+Some combined features depend on a specific cosmocc toolchain: https://github.com/jart/cosmopolitan
 
 Building this with gcc or clang would result in normal binaries similar to upstream.
 
@@ -45,20 +53,21 @@ Read more:
 - [x] BLIS
 - [ ] Intel MKL (WIP)
 - [ ] ArmPL (WIP)
-- [x] Apple Accelerate Framework (CBLAS)
+- [ ] Apple Accelerate Framework (CBLAS) (WIP/Testing)
 
 **CPU/GPU**
 
 - [x] OpenMP 
 - [x] OpenACC
 
-Both OpenMP and OpenACC builds currently use host CPU and do not offload GPU.
+Both OpenMP and OpenACC builds currently use host CPU and do not offload to GPU.
 
 **GPU**
 
-- [x] OpenCL (via CLBlast)
-- [ ] Vulkan
-- [ ] CUDA
+- [x] OpenCL (via CLBlast) (Direct - planned)
+- [ ] OpenGL 
+- [ ] Vulkan 
+- [ ] CUDA 
 
 Download the prebuilt run.com binary from releases
 
@@ -205,7 +214,7 @@ make runfast
 This build enables acceleration via OpenMP
 
 ```bash
-make runomp
+make run_cc_openmp
 ```
 
 Requires [OpenMP](https://www.openmp.org/) libraries and compiler with OpenMP support to be available on system.
@@ -223,7 +232,7 @@ More threads is not always better.
 This build enables acceleration via OpenACC
 
 ```bash
-make runoacc
+make run_cc_openacc
 ```
 
 Requires [OpenACC](https://www.openacc.org/) libraries and compiler with OpenACC support to be available on system.
@@ -233,7 +242,7 @@ Requires [OpenACC](https://www.openacc.org/) libraries and compiler with OpenACC
 This build enables acceleration via OpenBLAS
 
 ```bash
-make runopenblas
+make run_cc_openblas
 ```
 
 Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS) to be installed on system.
@@ -243,7 +252,7 @@ Requires [OpenBLAS](https://github.com/xianyi/OpenBLAS) to be installed on syste
 This build enables acceleration via BLIS
 
 ```bash
-make runblis
+make run_cc_blis
 ```
 Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enable-cblas -t openmp,pthreads auto` to be installed on system.
 
@@ -252,7 +261,7 @@ Requires [BLIS](https://github.com/flame/blis) compiled with `./configure --enab
 This build enables acceleration via Intel® oneAPI Math Kernel Library on x86_64 systems and Intel Mac OS - WIP
 
 ```bash
-make runmkl
+make run_cc_mkl
 ```
 Requires [Intel oneAPI MKL](https://www.intel.com/content/www/us/en/developer/tools/oneapi/onemkl.html) to be installed on system.
 
@@ -261,7 +270,7 @@ Requires [Intel oneAPI MKL](https://www.intel.com/content/www/us/en/developer/to
 This build enables acceleration via Arm Performance Library on ARM64 systems such as Linux or Mac OS - WIP
 
 ```bash
-make runarmpl
+make run_cc_armpl
 ```
 Requires [ArmPL](https://developer.arm.com/Tools%20and%20Software/Arm%20Performance%20Libraries) to be installed on system.
 
@@ -270,7 +279,7 @@ Requires [ArmPL](https://developer.arm.com/Tools%20and%20Software/Arm%20Performa
 This build enables BLAS acceleration via Apple Accelerate on Mac OS - Testing
 
 ```bash
-make runaccel
+make run_cc_mac_accel
 ```
 Requires [Apple Accelerate](https://developer.apple.com/accelerate/) to be available on system.
 
@@ -281,7 +290,7 @@ Note: Needs testing.
 This build enables acceleration with any Netlib CBLAS interface compatible libraries
 
 ```bash
-make runblas
+make run_cc_cblas
 ```
 
 Requires any BLAS library with Netlib CBLAS interface such as [LAPACK](https://www.netlib.org/lapack) to be installed on system.
@@ -291,7 +300,7 @@ Requires any BLAS library with Netlib CBLAS interface such as [LAPACK](https://w
 This build enables tuned GPU acceleration via OpenCL with CLBlast
 
 ```bash
-make runclblast
+make run_cc_clblast
 ```
 
 Requires [CLBlast](https://github.com/CNugteren/CLBlast) compiled with `cmake -DNETLIB=ON` to be installed on system.
@@ -302,23 +311,7 @@ Note: Currently runs much slower than CPU! Requires investigation or memory I/O 
 
 Have you ever wanted to inference a baby Llama 2 model with a single executable on any OS or *as OS? No? Well, now you can!
 
-By making use of the Cosmopolitan libc toolchain to build llama2.c we get the following features:
-
-+ Executable that runs on
-  + GNU/Systemd
-  + FreeBSD
-  + OpenBSD
-  + NetBSD
-  + XNU's Not UNIX
-  + Bare Metal (-D COSMO_METAL) (*Not fully functional yet)
-  + Windows
-
-+ Runs on 
-  + ARM64 via Blink x86-64 emulation (-D COSMO_BLINK) (Slow)
-  + x86_64
-
-+ Standalone
-  + Embedded model in executable (-D COSMO_ZIP)
+By making use of the Cosmopolitan libc toolchain to build llama2.c we get the we can get those features.
 
 Instructions
 
@@ -344,7 +337,7 @@ sudo ln -sf /opt/cosmo/tool/scripts/cosmoc++ /opt/cosmos/bin/cosmoc++
 Example build to generate a Actually Portable Executable (APE):
 
 ```bash
-make cosmorun
+make run_cosmocc_incbin
 ```
 
 Run or copy to any supported system and run:
@@ -361,32 +354,76 @@ Else
 /run.com model.bin
 ```
 
+## All 'make' targets
+
+Do make <target> to build for a particular target.
+
+Example:
+
+```bash
+make run_cc_openmp
+```
+
+Targets:
+```
+run 			- Default build
+rungnu 			- Generic linux distro build
+runompgnu 		- Generic linux distro + OpenMP build 
+runfast 		- Optimized build
+run_cc_armpl 		- ARM PL BLAS accelerated build (ARM64) (WIP)
+run_cc_blis 		- BLIS accelerated build
+run_cc_cblas 		- Generic CBLAS accelerated build
+run_cc_clblast 		- CLBlast OpenCL CBLAS GPU accelerated build
+run_cc_mac_accel	- Mac OS CBLAS via Accelerate Framework (WIP/TEST)
+run_cc_mkl 		- Intel MKL CBLAS build (x86_64 / intel Mac)(WIP)
+run_cc_openacc		- OpenACC accelerated build
+run_cc_openblas		- Openblas CBLAS accelerated build
+run_cc_openmp		- OpenMP accelerated build
+run_gcc_openmp_incbin	- Gcc + OpenMP + embedded model fast build
+run_gcc_openmp_strlit	- Gcc + OpenMP + embedded model build
+run_clang_openmp_incbin - Clang + OpenMP + embedded model fast build
+run_clang_openmp_strlit	- Clang + OpenMP + embedded model build
+run_gcc_static_incbin	- Static gcc + OpenMP + embedded model fast build
+run_gcc_static_strlit	- Static gcc + OpenMP + embedded model build
+run_clang_static_incbin - Static clang + OpenMP + embedded model fast build
+run_clang_static_strlit - Static clang + OpenMP + embedded model build
+run_cosmocc_incbin	- Portable + cosmocc + embedded model fast build (All OSes)
+run_cosmocc_strlit	- Portable + cosmocc + embedded model build (All OSes)
+run_cosmocc_zipos	- Portable + cosmocc + embedded zip model build(All OSes)
+```
+
+
 ## TODO
 
-- [ ] CLI Chat
-- [ ] Web Chat
-- [ ] Fix baremetal cosmo boot model loading
-- [ ] Alt model embedding
-- [ ] NetBSD Rump Kernel Boot (R&D)
-- [ ] Unikraft unikernel Boot (R&D)
-- [ ] GNU/Linux Linux Minimal Boot
+- [x] Alt model embedding (_incbin, _strlit) (done)
+- [x] CLI Chat - use any _incbin, _strlit or _zipos build. - Hacky prompt loop (done)
+- [x] Clang builds (Makefile) (done)
+- [x] Optimize OpenMP & OpenACC (done)
 - [ ] Intel MKL Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
-- [x] Apple Accelerate BLAS (Testing)
+- [ ] Apple Accelerate BLAS (WIP/Testing)
+- [ ] Web UI (next)
+- [ ] NetBSD Rump Kernel Boot (R&D, next, attempting)
+- [ ] OpenGL sgemm acceleration (next)
+- [ ] Fix baremetal cosmo boot model loading (pending)
+- [ ] OpenMP SIMD (pending)
+- [ ] Split extras into conditional header file & rebase
+- [ ] Unikraft unikernel Boot (R&D)
+- [ ] GNU/Linux Linux Minimal Boot
 - [ ] EFI Capsule
 - [ ] OpenCL pure
 - [ ] Vulkan
 - [ ] CUDA
-- [ ] OpenMP SIMD?
-- [x] Optimize OpenMP & OpenACC (WIP)
-- [X] Documentation (WIP)
-- [ ] Clang builds (Makefile)
-- [ ] Quantization (16, 4 , 2)
-- [ ] Minimize Code
-- [ ] Split extras into conditional header file
-- [ ] Update Github CI/CD workflow
-- [ ] Apply changes to closely resemble upstream
+- [ ] sgemm SSE, AVX
+- [ ] MPI / PVM / PBLAS
+- [ ] CLara / SunCL OpenCL support
+- [ ] cFS App
+- [ ] Android support
+- [ ] Various uC demos (ESP32, ESP8266, Pico) - load models via network 
 - [ ] Raspi Zero Demo
+- [ ] Quantization (16, 4 , 2)
+
+
  
 ## Changelog
 
@@ -402,7 +439,21 @@ See commits.
 
 See "Developer Status" issue.
 
-Current status: Busy since Aug ~6 2023, away on bigger IRL projects. Just merging stuff. Addressing all issues after ~7 days.
+Current status: Busy since Aug ~6 2023, away on bigger IRL projects. Just merging stuff. Addressing all issues every ~7 days.
+
+# Gratitude & Credits
+
+Thank you to to the creators of the following libraries and tools and their contributors:
+
+- [llama2.c](https://github.com/karpathy/llama2.c) - @karpathy
+- [cosmopolitan](https://github.com/jart/cosmopolitan) - @jart
+- [OpenBlas](https://github.com/xianyi/OpenBLAS) - @xianyi
+- [blis](https://github.com/flame/blis)
+- [CLBlast](https://github.com/CNugteren/CLBlast) - @CNugteren
+- [incbin](https://github.com/graphitemaster/incbin) - @graphitemaster
+- [strliteral](https://github.com/mortie/strliteral) - @mortie
+- More to come
+
 
 ## Notable projects
 - [llama.cpp](https://github.com/ggerganov/llama.cpp)

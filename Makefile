@@ -43,16 +43,16 @@ runfast: run.c
 # additionally compiles with OpenMP, allowing multithreaded runs
 # make sure to also enable multiple threads when running, e.g.:
 # OMP_NUM_THREADS=4 ./run out/model.bin
-.PHONY: runomp
-runomp: run.c
+.PHONY: run_cc_openmp
+run_cc_openmp: run.c
 	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native run.c  -lm  -o run
 	
-.PHONY: runoacc
-runoacc: run.c
+.PHONY: run_cc_openacc
+run_cc_openacc: run.c
 	$(CC) -D OPENACC -Ofast -fopenacc -foffload-options="-Ofast -lm" -march=native run.c  -lm  -o run	
 
 .PHONY: win64
-win64:
+win64: run.c
 	x86_64-w64-mingw32-gcc -Ofast -D_WIN32 -o run.exe -I. run.c win.c
 
 # compiles with gnu99 standard flags for amazon linux, coreos, etc. compatibility
@@ -64,64 +64,112 @@ rungnu:
 runompgnu:
 	$(CC) -Ofast -fopenmp -std=gnu11 run.c  -lm  -o run
 
-.PHONY: runclblast
-runclblast: run.c
+.PHONY: run_cc_clblast
+run_cc_clblast: run.c
 	$(CC) -D CLBLAST -Ofast -fopenmp -march=native run.c -lm -lclblast -o run
 
-.PHONY: runopenblas
-runopenblas: run.c
+.PHONY: run_cc_openblas
+run_cc_openblas: run.c
 	$(CC) -D OPENBLAS -Ofast -fopenmp -march=native run.c -lm -lopenblas -o run
 
-.PHONY: runblas
-runblas: run.c
+.PHONY: run_cc_cblas
+run_cc_cblas: run.c
 	$(CC) -D CBLAS -Ofast -fopenmp -march=native run.c -lm -lcblas -o run
 
-.PHONY: runblis
-runblis: run.c
+.PHONY: run_cc_blis
+run_cc_blis: run.c
 	$(CC) -D BLIS -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run
 	
-.PHONY: runarmpl
-runarmpl: run.c
+.PHONY: run_cc_armpl
+run_cc_armpl: run.c
 	$(CC) -D ARMPL -Ofast -fopenmp -march=native run.c -lm -larmpl_lp64_mp -o run
-	
-.PHONY: runmkl
-runmkl: run.c
-	$(CC) -D MKL -Ofast -fopenmp -march=native -I$(BLIS_INC) run.c -lm -lblis -o run	
 
-.PHONY: runaccel
+# amd64 (x86_64) / intel mac (WIP) Do not use!
+.PHONY: run_cc_mkl 
+run_cc_mkl: run.c
+	$(CC) -D MKL -Ofast -fopenmp -march=native run.c -lm -lblis -o run	
+
+.PHONY: run_cc_mac_accel
 runaccel: run.c
 	$(CC) -D AAF -Ofast -fopenmp -march=native run.c -lm -framework Accelerate -o run
 
-.PHONY: runcosmo
-runcosmo:
+
+# Cosmocc + embedded model & tokenizer
+
+.PHONY: run_cosmocc_zipos
+run_cosmocc_zipos: run.c
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D COSMO_ZIP run.c -lm -o run.com
 	zip run.com $(MOD_PATH)
 	zip run.com $(TOK_PATH)
 	
-.PHONY: runcincbin
-runcincbin:
+.PHONY: run_cosmocc_incbin
+run_cosmocc_incbin:
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c -lm -o run.com
 
-.PHONY: runcstrlit
-runcstrlit:
+.PHONY: run_cosmocc_strlit
+run_cosmocc_strlit: run.c
 	# Uses https://github.com/mortie/strliteral to embed files
 	gcc -Ofast strliteral.c -o strlit
 	./strlit -i emb_Model_data $(MOD_PATH) model.h
 	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D STRLIT -D LLOOP run.c -lm -o run.com
-	
-.PHONY: runompincbin
-runompincbin: run.c
-	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
 
-.PHONY: runompstrlit
-runompstrlit: run.c
+
+# GCC OpenMP + embedded model & tokenizer	
+
+.PHONY: run_gcc_openmp_incbin
+run_gcc_openmp_incbin: run.c
+	gcc -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
+
+.PHONY: run_gcc_openmp_strlit
+run_gcc_openmp_strlit: run.c
 	# Uses https://github.com/mortie/strliteral to embed files
 	gcc -Ofast strliteral.c -o strlit
 	./strlit -i emb_Model_data $(MOD_PATH) model.h
 	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
-	$(CC) -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D STRLIT -D LLOOP run.c  -lm  -o run	
+	gcc -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D STRLIT -D LLOOP run.c  -lm  -o run	
+	
+	
+# Clang OpenMP + embedded model & tokenizer	
 
+.PHONY: run_clang_openmp_incbin
+run_clang_openmp_incbin: run.c
+	clang -D OPENMP -Ofast -fopenmp -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
+
+.PHONY: run_clang_openmp_strlit
+run_clang_openmp_strlit: run.c
+	# Uses https://github.com/mortie/strliteral to embed files
+	clang -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
+	clang -D OPENMP -Ofast -fopenmp -march=native -D STRLIT -D LLOOP run.c  -lm  -o run		
+
+# GCC static + embedded model & tokenizer
+
+.PHONY: run_gcc_static_incbin
+run_gcc_static_incbin: run.c
+	gcc -Ofast -static -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
+
+.PHONY: run_gcc_static_strlit
+run_gcc_static_strlit: run.c
+	# Uses https://github.com/mortie/strliteral to embed files
+	gcc -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
+	gcc -Ofast -static -march=native -D STRLIT -D LLOOP run.c  -lm  -o run
+
+# Clang static + embedded model & tokenizer
+.PHONY: run_clang_static_incbin
+run_clang_static_incbin: run.c
+	clang -Ofast -static -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
+
+.PHONY: run_clang_static_strlit
+run_clang_static_strlit: run.c
+	# Uses https://github.com/mortie/strliteral to embed files
+	clang -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
+	clang -Ofast -static -march=native -D STRLIT -D LLOOP run.c  -lm  -o run
 
 # run all tests
 .PHONY: test

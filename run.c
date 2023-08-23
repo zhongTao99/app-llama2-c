@@ -842,6 +842,17 @@ long time_in_ms() {
 }
 
 // ----------------------------------------------------------------------------
+// LLama 2 Everywhere read prompt utility function
+
+#if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT)
+void inprompt(char *lprompt) // Handle prompts
+{
+    fgets(lprompt, 1024, stdin);
+    lprompt[strcspn(lprompt, "\n")] = '\0';
+}
+#endif
+
+// ----------------------------------------------------------------------------
 // int main
 
 void error_usage() {
@@ -889,10 +900,10 @@ int main(int argc, char *argv[]) {
     stats = 0;
     while(1) { // start of loop
     #endif
-    printf("LLAMA2 Prompt: ");
-    fflush(stdout);
-    scanf("%[^\n]%*c",promptbuffer); // Read prompt
-    prompt=promptbuffer; // Set prompt
+    prompt=(char*)malloc(1024);
+    printf("L2E $ ");
+    fflush(stdout); 
+    inprompt(prompt); // read prompt
     #else
     // poor man's C argparse so we can override the defaults above from the command line
     if (argc >= 2) { checkpoint_path = argv[1]; } else { error_usage(); }
