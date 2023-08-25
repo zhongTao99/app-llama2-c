@@ -170,6 +170,11 @@ run_clang_static_strlit: run.c
 	./strlit -i emb_Model_data $(MOD_PATH) model.h
 	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
 	clang -Ofast -static -march=native -D STRLIT -D LLOOP run.c  -lm  -o run
+	
+# Unikraft Unikernel build
+.PHONY: run_unik_qemu_x86_64
+run_unik_qemu_x86_64: run.c
+	make -f Makefile.unikernel
 
 # run all tests
 .PHONY: test
@@ -184,3 +189,9 @@ testc:
 .PHONY: clean
 clean:
 	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
+	make -f Makefile.unikernel clean
+	
+.PHONY: distclean
+distclean:
+	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
+	make -f Makefile.unikernel distclean	

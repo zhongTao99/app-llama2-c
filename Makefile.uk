@@ -1,0 +1,5 @@
+$(eval $(call addlib,l2e))
+L2E_SRCS-y += $(L2E_BASE)/run.c
+L2E_SRCS-y += $(L2E_BASE)/model.h
+L2E_SRCS-y += $(L2E_BASE)/tokenizer.h
+L2E_CFLAGS-y += -DUNIK
