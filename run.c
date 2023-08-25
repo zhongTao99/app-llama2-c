@@ -1,5 +1,18 @@
 /* Inference for Llama-2 Transformer model in pure C 
    The Llama 2 Everywhere @trholding (Vulcan) fork   */
+   
+   
+// ----------------------------------------------------------------------------
+// Unikraft Unikernel Support Directives
+// 
+
+#define LSTATUS 0
+
+#ifdef UNIK
+#define STRLIT 
+#define LLOOP
+#define LSTATUS 1
+#endif
 
 // ----------------------------------------------------------------------------
 // INCBIN Embedding Support Directives
@@ -887,6 +900,9 @@ int main(int argc, char *argv[]) {
     #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT) // special case for embedded models
     // we read the embedded checkpoint from within the executable
     // 'checkpoint' is necessary arg
+    #ifdef UNIK
+    printf("\n*** GURU UNMEDITATION :: BOOT > LLAMA HAS AWAKENED ***\n\n");
+    #endif
     #if defined(COSMO_ZIP)
     checkpoint_path = "/zip/out/model.bin";
     tokenizer_path = "/zip/tokenizer.bin";
@@ -894,14 +910,13 @@ int main(int argc, char *argv[]) {
     checkpoint_path = emb_Model_data;
     tokenizer_path = emb_Tokenizer_data;
     #endif
-    buffertokens=16;
-    char promptbuffer[1024]; // Buffer for prompt 
+    buffertokens=8;
     #ifdef LLOOP
-    stats = 0;
+    stats = LSTATUS;
     while(1) { // start of loop
     #endif
     prompt=(char*)malloc(1024);
-    printf("L2E $ ");
+    printf("\nL2E $ ");
     fflush(stdout); 
     inprompt(prompt); // read prompt
     #else
@@ -1005,7 +1020,7 @@ int main(int argc, char *argv[]) {
     free_sampler(&sampler);
     free_tokenizer(&tokenizer);
     free_transformer(&transformer);
-    #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT) 
+    #if defined(COSMO_ZIP) || defined(INC_BIN) || defined(STRLIT)
     #ifdef LLOOP
     printf("\n");
     } // end of loop

@@ -174,6 +174,9 @@ run_clang_static_strlit: run.c
 # Unikraft Unikernel build
 .PHONY: run_unik_qemu_x86_64
 run_unik_qemu_x86_64: run.c
+	[ ! -d "UNIK" ] && echo "Cloning unikraft and musl sources..." 
+	[ ! -d "UNIK/unikraft" ] && git clone https://github.com/unikraft/unikraft UNIK/unikraft
+	[ ! -d "UNIK/libs/musl" ] && git clone https://github.com/unikraft/lib-musl UNIK/libs/musl
 	make -f Makefile.unikernel
 
 # run all tests
@@ -194,4 +197,6 @@ clean:
 .PHONY: distclean
 distclean:
 	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
-	make -f Makefile.unikernel distclean	
+	make -f Makefile.unikernel distclean
+	rm -rf UNIK
+	
