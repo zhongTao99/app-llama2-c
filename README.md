@@ -23,6 +23,33 @@ I will be mirrorring the progress of https://github.com/karpathy/llama2.c every 
 
 # Features
 
+### NEW - Unikernel Build
+
+Have you ever wanted to boot and inference a herd of 1000's of Virtual baby Llama 2 models on big ass enterprise servers? No? Well, now you can!
+
+![l2e_unik](https://github.com/trholding/llama2.c/assets/93451215/415f00b4-25ed-4c30-b619-1c3404ababee)
+
+Just do the following to build:
+
+```bash
+make run_unik_qemu_x86_64
+```
+
+Please note that the requirements - unikraft and musl sources - will automatically get cloned before building.
+
+Once the build completes, (takes a while), run L2E like this:
+
+```bash
+qemu-system-x86_64 -m 256m -accel kvm -kernel build/L2E_qemu-x86_64
+```
+
+You can also run with -nographic option to directly interact in terminal.
+
+```bash
+qemu-system-x86_64 -m 256m -accel kvm -kernel build/L2E_qemu-x86_64 -nographic
+```
+Download and try this and the cosmocc build in the latest release.
+
 ## Portability Features
 
 + Single Executable that runs on any x86_64 OS (cosmocc builds)
@@ -365,6 +392,13 @@ make run_cc_openmp
 ```
 
 Targets:
+
+NEW:
+
+```
+run_unik_qemu_x86_64 - Unikernel + embedded model Build (QEMU/x86_64)
+```
+
 ```
 run 			- Default build
 rungnu 			- Generic linux distro build
@@ -399,7 +433,10 @@ run_cosmocc_zipos	- Portable + cosmocc + embedded zip model build(All OSes)
 - [x] CLI Chat - use any _incbin, _strlit or _zipos build. - Hacky prompt loop (done)
 - [x] Clang builds (Makefile) (done)
 - [x] Optimize OpenMP & OpenACC (done)
-- [ ] Intel MKL Acceleration (WIP)
+- [x] Unikraft unikernel Boot (WIP/Testing)
+- [ ] Rename unikernel to Virtual Llama 2000 : Close to the Metal Part 1
+- [ ] Fix broken MSVC build (!) yikes
+- [ ] Intel MKL BLAS Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
 - [ ] Apple Accelerate BLAS (WIP/Testing)
 - [ ] Web UI (next)
@@ -408,7 +445,6 @@ run_cosmocc_zipos	- Portable + cosmocc + embedded zip model build(All OSes)
 - [ ] Fix baremetal cosmo boot model loading (pending)
 - [ ] OpenMP SIMD (pending)
 - [ ] Split extras into conditional header file & rebase
-- [ ] Unikraft unikernel Boot (R&D)
 - [ ] GNU/Linux Linux Minimal Boot
 - [ ] EFI Capsule
 - [ ] OpenCL pure
