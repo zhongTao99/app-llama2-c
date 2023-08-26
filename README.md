@@ -10,16 +10,27 @@ The primary objective of Llama 2 Everywhere (L2E) is to ensure its compatibility
 
 We believe that in future by harnessing a legion of small specialized LLMs with modest hardware requirements which are networked, distributed, and self-coordinated, L2E has the potential to democratize access to AI and unlock collective intelligence that surpasses that of a single large LLM.
 
-The current compelling use case of L2E involves training small models on diverse textual sources, including textbooks, open books, and comprehensive corpora like the SlimPajama corpus. These trained models can be deployed using L2E, enabling them to run as bootable instances on outdated school computers. This deployment scenario proves particularly valuable in school libraries or classrooms where internet connectivity is limited or unavailable, serving as an information gateway for students without constant reliance on the internet.
+The current compelling use case of L2E involves training small models on diverse textual sources, including textbooks, open books, and comprehensive corpora like the SlimPajama corpus. These trained models can be deployed using L2E, enabling them to run as bootable instances on outdated school computers. This deployment scenario proves particularly valuable in school libraries or classrooms where internet connectivity is limited or unavailable, serving as an information gateway* for students without constant reliance on the internet.
 
 By pursuing the vision of Llama 2 Everywhere, we aim to create an inclusive AI ecosystem that can adapt to diverse environments and empower individuals and communities on a global scale.
 
 My research goal is to train models using various hardware telemetry data with the hope that the models learn to interpret sensor inputs and control actuators based on the insights they glean from the sensor inputs. This research direction may open up exciting possibilities in fields such as automation, space, robotics and IoT, where L2E can play a pivotal role in bridging the gap between AI and physical systems.
 
 
-A friendly fork of the excellent [llama2.c](https://github.com/karpathy/llama2.c)
+A friendly fork of the excellent [@karpathy's llama2.c](https://github.com/karpathy/llama2.c)
 
 I will be mirrorring the progress of https://github.com/karpathy/llama2.c every week, add portability, performance improvements and convenience features such as a web interface which certainly would not fit in the upstream do to the minimalistic elegance requirements there.
+
+### * How do we make sure that the output is factual and not hallucinated?
+
+It's a chicken and egg problem. This has to be explored and figured out on the way. Some ideas on mind are:
+
+1. Topic specialized models which are frequently updated maybe every month or two.
+2. Fact Checking & Moderation specialized models which moderate or do fact checking on other model's output.
+3. Reduce / mitigate hallucinations through output validation (both neural and rule based).
+4. Prompt rewriting both neural and with rules.
+5. Educators / Students / Users can flag answers. Administrators could update rules.
+
 
 # Features
 
@@ -153,28 +164,20 @@ A converted **Meta's Llama 2 7b** model can be inferenced at a slow speed.
 
 **Full Usage**
 
-```bash
-./run <checkpoint_file> -t [temperature] -s [steps] -b [buffertokens] -p [prompt]
 ```
-
-Where 
- 
- <checkpoint_file> is the **mandatory** checkpoint / model file.\
-  E.g. `stories15M.bin` or `stories42M.bin` or `stories110M.bin`.
- 
- -t is the *optional* temperature in the range `0.0` to `1.0` and a default of **0.9**.\
-  `0` makes outputs with same or no prompt reproducible.
- 
- -n is the *optional* number of steps in the range `1` to `256` and a default of **256**.\
-  `0` sets it to context length of model.\
-  This option defines the number of tokens to infer and output.
-  
- -b is the *optional* number of tokens to buffer from a range 1 to context length and a default of **1**.\
-  `0` sets it to context length of model.\
-  This increases the interactive performance. Use values such as `4`, `8`, `16`, `32`, `64`, `128` ... YMMV!
- 
- -i is the *optional* input prompt such as `"A car"` to pass on to guide inference.\
-  If omitted the model will infer on its own.
+Usage:   run <checkpoint> [options]
+Example: ./run model.bin -n 256 -i "Once upon a time"
+Options:
+  -t <float>  temperature in [0,inf], default 1.0
+  -p <float>  p value in top-p (nucleus) sampling in [0,1] default 0.9
+  -s <int>    random seed, default time(NULL)
+  -n <int>    number of steps to run for, default 256. 0 = max_seq_len
+  -b <int>    number of tokens to buffer, default 1. 0 = max_seq_len
+  -x <int>    extended info / stats, default 1 = on. 0 = off
+  -i <string> input prompt
+  -z <string> optional path to custom tokenizer
+```
+``<checkpoint>`` is the **mandatory** checkpoint / model file.
 
 **Minimal Usage**
 
@@ -193,6 +196,13 @@ The binary will boot on baremetal and also run on any 64 Bit OS such as Linux, *
 Currently when used to boot, it won't be able to find the models. It's a toolchain issue with an anticipated fix.
 
 The performance of this build is more than twice of the basic build.
+
+The cosmopolitan toolchain is a requirement for this build to work. Read here: [How to build](https://github.com/trholding/llama2.c#portable-binary-build)
+
+__Please note that the Multi OS binaries builds built with cosmocc cause a false positive with AV/Microsoft Defender and Virus Total__
+
+The issue is that AV's consider unsigned binaries or binaries that contain multiple OS binary signatures in one binary as suspicious.
+Get more insight here: https://github.com/trholding/llama2.c/issues/8 and https://github.com/jart/cosmopolitan/issues/342
 
 **Linux**
 
@@ -215,6 +225,14 @@ The MSVC build will use openmp and max threads suitable for your CPU unless you 
 Build on Linux and Windows:
 
 `make win64` to use the mingw compiler toolchain.
+
+**Android**
+
+See this @lordunix's post on how to build this on Android within [termux](https://termux.dev/en/):
+
+https://github.com/trholding/llama2.c/issues/7#issue-1867639275
+
+TODO. 
 
 ## Performance
 
@@ -352,18 +370,16 @@ Or do:
 sudo mkdir -p /opt
 sudo chmod 1777 /opt
 git clone https://github.com/jart/cosmopolitan /opt/cosmo
-cd /opt/cosmo
-make -j8 toolchain
-mkdir -p /opt/cosmos/bin
-export PATH="/opt/cosmos/bin:$PATH"
-echo 'PATH="/opt/cosmos/bin:$PATH"' >>~/.profile
-sudo ln -sf /opt/cosmo/tool/scripts/cosmocc /opt/cosmos/bin/cosmocc
-sudo ln -sf /opt/cosmo/tool/scripts/cosmoc++ /opt/cosmos/bin/cosmoc++
+export PATH="/opt/cosmo/bin:/opt/cosmos/bin:$PATH"
+echo 'PATH="/opt/cosmo/bin:/opt/cosmos/bin:$PATH"' >>~/.profile
+cosmocc --update   # pull cosmo and build/rebuild toolchain
 ```
 
-Example build to generate a Actually Portable Executable (APE):
+Example build to generate a Actually Portable Executable (APE) with embedded model:
 
 ```bash
+mkdir out
+wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin -O out/model.bin
 make run_cosmocc_incbin
 ```
 
@@ -425,41 +441,47 @@ run_cosmocc_incbin	- Portable + cosmocc + embedded model fast build (All OSes)
 run_cosmocc_strlit	- Portable + cosmocc + embedded model build (All OSes)
 run_cosmocc_zipos	- Portable + cosmocc + embedded zip model build(All OSes)
 ```
+All builds with embedded models need the model to be in ``out/`` directory and the model name has to be ``model.bin``
 
+Example:
+
+```bash
+mkdir out
+wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin -O out/model.bin
+```
 
 ## TODO
 
+- [ ] Python Binding + Streamlit Demo (priority)
+- [ ] Web UI + Minimal OpenAI API compat (priority)
+- [ ] GNU/Linux kernel + efistub + cpio + l2e as init boot image (priority)
+- [ ] Users need better docs / howto / example, especially VM related.
+- [ ] Train a small test model on open books. (I need to figure out sourcing the compute)
 - [x] Alt model embedding (_incbin, _strlit) (done)
 - [x] CLI Chat - use any _incbin, _strlit or _zipos build. - Hacky prompt loop (done)
 - [x] Clang builds (Makefile) (done)
 - [x] Optimize OpenMP & OpenACC (done)
-- [x] Unikraft unikernel Boot (WIP/Testing)
+- [x] Unikraft unikernel Boot (WIP/Testing) (Task: Multi Arch + Firecracker VM support)
 - [ ] Rename unikernel to Virtual Llama 2000 : Close to the Metal Part 1
-- [ ] Fix broken MSVC build (!) yikes
 - [ ] Intel MKL BLAS Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
 - [ ] Apple Accelerate BLAS (WIP/Testing)
-- [ ] Web UI (next)
-- [ ] NetBSD Rump Kernel Boot (R&D, next, attempting)
-- [ ] OpenGL sgemm acceleration (next)
+- [ ] NetBSD Rump Kernel Boot (R&D, attempt failed, needs deep study)
+- [ ] sgemm OpenGL acceleration (next)
+- [ ] sgemm SSE, AVX acceleration
 - [ ] Fix baremetal cosmo boot model loading (pending)
 - [ ] OpenMP SIMD (pending)
-- [ ] Split extras into conditional header file & rebase
-- [ ] GNU/Linux Linux Minimal Boot
-- [ ] EFI Capsule
 - [ ] OpenCL pure
 - [ ] Vulkan
 - [ ] CUDA
-- [ ] sgemm SSE, AVX
 - [ ] MPI / PVM / PBLAS
-- [ ] CLara / SunCL OpenCL support
 - [ ] cFS App
-- [ ] Android support
-- [ ] Various uC demos (ESP32, ESP8266, Pico) - load models via network 
-- [ ] Raspi Zero Demo
+- [ ] Android support (both ndk builds and minimal APK)
+- [ ] Various uC demos (ESP32, ESP8266, Pico) - load models via network, Raspi Zero Demo
 - [ ] Quantization (16, 4 , 2)
-
-
+- [ ] ~~CLara~~ (tried / broken) / SunCL Distributed OpenCL support
+- [ ] Fix broken MSVC build (!) yikes
+- [ ] Split, re-order, rebase repo.
  
 ## Changelog
 
@@ -484,11 +506,11 @@ Thank you to to the creators of the following libraries and tools and their cont
 - [llama2.c](https://github.com/karpathy/llama2.c) - @karpathy
 - [cosmopolitan](https://github.com/jart/cosmopolitan) - @jart
 - [OpenBlas](https://github.com/xianyi/OpenBLAS) - @xianyi
-- [blis](https://github.com/flame/blis)
+- [blis](https://github.com/flame/blis) - @flame
 - [CLBlast](https://github.com/CNugteren/CLBlast) - @CNugteren
 - [incbin](https://github.com/graphitemaster/incbin) - @graphitemaster
 - [strliteral](https://github.com/mortie/strliteral) - @mortie
-- More to come
+- [unikraft](https://github.com/unikraft) - @unikraft
 
 
 ## Notable projects
