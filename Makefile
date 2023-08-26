@@ -52,7 +52,7 @@ run_cc_openacc: run.c
 	$(CC) -D OPENACC -Ofast -fopenacc -foffload-options="-Ofast -lm" -march=native run.c  -lm  -o run	
 
 .PHONY: win64
-win64: run.c
+win64:
 	x86_64-w64-mingw32-gcc -Ofast -D_WIN32 -o run.exe -I. run.c win.c
 
 # compiles with gnu99 standard flags for amazon linux, coreos, etc. compatibility
@@ -195,6 +195,14 @@ test:
 testc:
 	pytest -k runc
 
+# run the C tests, without touching pytest / python
+# to increase verbosity level run e.g. as `make testcc VERBOSITY=1`
+VERBOSITY ?= 0
+.PHONY: testcc
+testcc:
+	$(CC) -DVERBOSITY=$(VERBOSITY) -O3 -o testc test.c -lm
+	./testc
+
 .PHONY: clean
 clean:
 	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
@@ -205,4 +213,10 @@ distclean:
 	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
 	make -f Makefile.unikernel distclean
 	rm -rf UNIK
+
+
+.PHONY: list
+list:
+	# Uses: https://stackoverflow.com/a/26339924 
+	@LC_ALL=C $(MAKE) -pRrq -f $(firstword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/(^|\n)# Files(\n|$$)/,/(^|\n) / {if ($$1 !~ "^[#.]") {print $$1}}' | sort | grep -E -v -e '^[^[:alnum:]]' -e '^$@$$'
 	
