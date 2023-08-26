@@ -185,6 +185,14 @@ run_unik_qemu_x86_64: run.c
 	[ ! -d "UNIK/libs/musl" ] && git clone https://github.com/unikraft/lib-musl UNIK/libs/musl
 	make -f Makefile.unikernel
 
+# Build for termux on Android
+.PHONY: run_incbin
+run_incbin: run.c
+	wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin
+	mkdir out
+	mv stories15M.bin out/model.bin
+	$(CC) -Ofast -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -o run run.c -lm
+
 # run all tests
 .PHONY: test
 test:
