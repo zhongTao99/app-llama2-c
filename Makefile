@@ -85,6 +85,7 @@ run_cc_armpl: run.c
 	$(CC) -D ARMPL -Ofast -fopenmp -march=native run.c -lm -larmpl_lp64_mp -o run
 
 # amd64 (x86_64) / intel mac (WIP) Do not use!
+
 .PHONY: run_cc_mkl 
 run_cc_mkl: run.c
 	$(CC) -D MKL -Ofast -fopenmp -march=native run.c -lm -lblis -o run	
@@ -93,6 +94,11 @@ run_cc_mkl: run.c
 runaccel: run.c
 	$(CC) -D AAF -Ofast -fopenmp -march=native run.c -lm -framework Accelerate -o run
 
+# Cosmocc
+
+.PHONY: run_cosmocc
+run_cosmocc: run.c
+	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL run.c -lm -o run.com
 
 # Cosmocc + embedded model & tokenizer
 
@@ -114,7 +120,6 @@ run_cosmocc_strlit: run.c
 	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
 	cosmocc -Ofast -D COSMO_BLINK -D COSMO_METAL -D STRLIT -D LLOOP run.c -lm -o run.com
 
-
 # GCC OpenMP + embedded model & tokenizer	
 
 .PHONY: run_gcc_openmp_incbin
@@ -128,7 +133,6 @@ run_gcc_openmp_strlit: run.c
 	./strlit -i emb_Model_data $(MOD_PATH) model.h
 	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
 	gcc -D OPENMP -Ofast -fopenmp -foffload-options="-Ofast -lm" -march=native -D STRLIT -D LLOOP run.c  -lm  -o run	
-	
 	
 # Clang OpenMP + embedded model & tokenizer	
 
@@ -159,6 +163,7 @@ run_gcc_static_strlit: run.c
 	gcc -Ofast -static -march=native -D STRLIT -D LLOOP run.c  -lm  -o run
 
 # Clang static + embedded model & tokenizer
+
 .PHONY: run_clang_static_incbin
 run_clang_static_incbin: run.c
 	clang -Ofast -static -march=native -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -D LLOOP run.c  -lm  -o run	
@@ -172,6 +177,7 @@ run_clang_static_strlit: run.c
 	clang -Ofast -static -march=native -D STRLIT -D LLOOP run.c  -lm  -o run
 	
 # Unikraft Unikernel build
+
 .PHONY: run_unik_qemu_x86_64
 run_unik_qemu_x86_64: run.c
 	[ ! -d "UNIK" ] && echo "Cloning unikraft and musl sources..." 

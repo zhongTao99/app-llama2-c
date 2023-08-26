@@ -189,11 +189,11 @@ Options:
 
 **Multi OS build**
 
-`make cosmorun`
+`make run_cosmocc`
 
 The binary will boot on baremetal and also run on any 64 Bit OS such as Linux, *BSD, Windows and slower on Aarch64 Mac & Linux.
 
-Currently when used to boot, it won't be able to find the models. It's a toolchain issue with an anticipated fix.
+Currently when used to boot, it won't be able to find the models. It's a toolchain feature with an anticipated PR merge.
 
 The performance of this build is more than twice of the basic build.
 
@@ -383,6 +383,12 @@ wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin -O o
 make run_cosmocc_incbin
 ```
 
+Example build to generate a APE:
+
+```bash
+make run_cosmocc
+```
+
 Run or copy to any supported system and run:
 
 If model is embedded:
@@ -437,6 +443,7 @@ run_gcc_static_incbin	- Static gcc + OpenMP + embedded model fast build
 run_gcc_static_strlit	- Static gcc + OpenMP + embedded model build
 run_clang_static_incbin - Static clang + OpenMP + embedded model fast build
 run_clang_static_strlit - Static clang + OpenMP + embedded model build
+run_cosmocc		- Portable + cosmocc
 run_cosmocc_incbin	- Portable + cosmocc + embedded model fast build (All OSes)
 run_cosmocc_strlit	- Portable + cosmocc + embedded model build (All OSes)
 run_cosmocc_zipos	- Portable + cosmocc + embedded zip model build(All OSes)
