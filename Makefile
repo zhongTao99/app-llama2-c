@@ -180,17 +180,19 @@ run_clang_static_strlit: run.c
 
 .PHONY: run_unik_qemu_x86_64
 run_unik_qemu_x86_64: run.c
-	[ ! -d "UNIK" ] && echo "Cloning unikraft and musl sources..." 
-	[ ! -d "UNIK/unikraft" ] && git clone https://github.com/unikraft/unikraft UNIK/unikraft
-	[ ! -d "UNIK/libs/musl" ] && git clone https://github.com/unikraft/lib-musl UNIK/libs/musl
+	[ ! -d "UNIK" ] && echo "Cloning unikraft and musl sources..." || true
+	[ ! -d "UNIK/unikraft" ] && git clone https://github.com/unikraft/unikraft UNIK/unikraft || true
+	[ ! -d "UNIK/libs/musl" ] && git clone https://github.com/unikraft/lib-musl UNIK/libs/musl || true
 	make -f Makefile.unikernel
 
 # Build for termux on Android
+
 .PHONY: run_incbin
 run_incbin: run.c
-	wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin
-	mkdir out
-	mv stories15M.bin out/model.bin
+	[ ! -d "out/" ] && echo "Downloading model..." || true
+	[ ! -d "out/" ] && wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin || true
+	[ ! -d "out/" ] && mkdir out || true
+	[ -f "stories15M.bin" ] && mv stories15M.bin out/model.bin || true
 	$(CC) -Ofast -D INC_BIN -D MODPATH=$(MOD_PATH) -D TOKPATH=$(TOK_PATH) -o run run.c -lm
 
 # run all tests
@@ -213,12 +215,12 @@ testcc:
 
 .PHONY: clean
 clean:
-	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
+	rm -f run run.com model.h tokenizer.h strlit run.com.dbg .config.old .config *~
 	make -f Makefile.unikernel clean
 	
 .PHONY: distclean
 distclean:
-	rm -f run run.com model.h tokenizer.h strlit run.com.dbg *~
+	rm -f run run.com model.h tokenizer.h strlit run.com.dbg .config.old .config *~
 	make -f Makefile.unikernel distclean
 	rm -rf UNIK
 

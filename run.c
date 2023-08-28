@@ -6,12 +6,12 @@
 // Unikraft Unikernel Support Directives
 // 
 
-#define LSTATUS 0
-
 #ifdef UNIK
 #define STRLIT 
 #define LLOOP
-#define LSTATUS 1
+#define LSTATUS 1 // Status on
+#else
+#define LSTATUS 0 // Status off
 #endif
 
 // ----------------------------------------------------------------------------
