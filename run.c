@@ -9,9 +9,9 @@
 #ifdef UNIK
 #define STRLIT 
 #define LLOOP
-#define LSTATUS 1 // Status on
+#define LOOPSTATUS 1 // Status on
 #else
-#define LSTATUS 0 // Status off
+#define LOOPSTATUS 0 // Status off
 #endif
 
 // ----------------------------------------------------------------------------
@@ -912,7 +912,7 @@ int main(int argc, char *argv[]) {
     #endif
     buffertokens=8;
     #ifdef LLOOP
-    stats = LSTATUS;
+    stats = LOOPSTATUS;
     while(1) { // start of loop
     #endif
     prompt=(char*)malloc(1024);
