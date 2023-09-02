@@ -34,6 +34,22 @@ It's a chicken and egg problem. This has to be explored and figured out on the w
 
 # Features
 
+#### NEW - L2E OS (Linux Kernel)
+
+Have you ever wanted to really boot and inference a baby Llama 2 model on a computer? No? Well, now you can!
+
+![guru](https://github.com/trholding/llama2.c/assets/93451215/5f9fa0e7-5f30-437f-bbe1-a2aeccdcdfc5)
+
+#### Probably Releasing today!
+
+### NEW - Linux Kernel Module
+
+Have you ever wanted to do `cat /dev/llama` and `echo "Sudo make me a sandwich!" > /dev/llama` or pass a kernel parameter such as `l2e.quest="What is the meaning of life?"` ? No? Well, as luck would have, it now you can!
+
+![bootos1](https://github.com/trholding/llama2.c/assets/93451215/bb4f3377-e657-41af-86ce-fe10bc164339)
+
+#### Probably Releasing today! (WIP)
+
 ### NEW - Unikernel Build
 
 Have you ever wanted to boot and inference a herd of 1000's of Virtual baby Llama 2 models on big ass enterprise servers? No? Well, now you can!
@@ -74,6 +90,9 @@ Download and try this and the cosmocc build in the latest release.
 
 + Standalone
 - [x] Embedded model and tokenizer via ZipOS (cosmocc), INCBIN, strliteral
+
++ Usability
+- [x] Hacky CLI Chat - use any _incbin, _strlit or _zipos build.
 
 Some combined features depend on a specific cosmocc toolchain: https://github.com/jart/cosmopolitan
 
@@ -464,12 +483,7 @@ wget https://huggingface.co/karpathy/tinyllamas/resolve/main/stories15M.bin -O o
 - [ ] GNU/Linux kernel + efistub + cpio + l2e as init boot image (priority)
 - [ ] Users need better docs / howto / example, especially VM related.
 - [ ] Train a small test model on open books. (I need to figure out sourcing the compute)
-- [x] Alt model embedding (_incbin, _strlit) (done)
-- [x] CLI Chat - use any _incbin, _strlit or _zipos build. - Hacky prompt loop (done)
-- [x] Clang builds (Makefile) (done)
-- [x] Optimize OpenMP & OpenACC (done)
 - [x] Unikraft unikernel Boot (WIP/Testing) (Task: Multi Arch + Firecracker VM support)
-- [ ] Rename unikernel to Virtual Llama 2000 : Close to the Metal Part 1
 - [ ] Intel MKL BLAS Acceleration (WIP)
 - [ ] Arm Performance Libraries (WIP)
 - [ ] Apple Accelerate BLAS (WIP/Testing)
