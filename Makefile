@@ -183,6 +183,10 @@ run_unik_qemu_x86_64: run.c
 	[ ! -d "UNIK" ] && echo "Cloning unikraft and musl sources..." || true
 	[ ! -d "UNIK/unikraft" ] && git clone https://github.com/unikraft/unikraft UNIK/unikraft || true
 	[ ! -d "UNIK/libs/musl" ] && git clone https://github.com/unikraft/lib-musl UNIK/libs/musl || true
+	UK_DEFCONFIG=$(shell pwd)/defconfigs/qemu-x86_64 make -f Makefile.unikernel defconfig
+	gcc -Ofast strliteral.c -o strlit
+	./strlit -i emb_Model_data $(MOD_PATH) model.h
+	./strlit -i emb_Tokenizer_data $(TOK_PATH) tokenizer.h
 	make -f Makefile.unikernel
 
 # Build for termux on Android
