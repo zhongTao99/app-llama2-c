@@ -5,6 +5,6 @@ tokenizer.h
 model.h
 .config.old
 .config
-UNIK/
+workdir/
 build/
 stories15M.bin
