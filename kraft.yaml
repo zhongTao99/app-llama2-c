@@ -20,3 +20,5 @@ targets:
 libraries:
   musl:
     version: stable
+  lwip:
+    version: stable

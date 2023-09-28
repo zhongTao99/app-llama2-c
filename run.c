@@ -8,7 +8,7 @@
 
 #ifdef UNIK
 #define STRLIT 
-#define LLOOP
+//#define LLOOP
 #define LOOPSTATUS 1 // Status on
 #else
 #define LOOPSTATUS 0 // Status off
@@ -885,7 +885,7 @@ void error_usage() {
     exit(EXIT_FAILURE);
 }
 
-int main(int argc, char *argv[]) {
+static void generate_story(char *story, size_t len) {
 
     // default parameters
     char *checkpoint_path = NULL;  // e.g. out/model.bin
@@ -917,11 +917,14 @@ int main(int argc, char *argv[]) {
     stats = LOOPSTATUS;
     while(1) { // start of loop
     #endif
+#if 0
     prompt=(char*)malloc(1024);
     printf("\nL2E $ ");
     fflush(stdout); 
     inprompt(prompt); // read prompt
+#endif
     #else
+#if 0
     // poor man's C argparse so we can override the defaults above from the command line
     if (argc >= 2) { checkpoint_path = argv[1]; } else { error_usage(); }
     for (int i = 2; i < argc; i+=2) {
@@ -940,6 +943,7 @@ int main(int argc, char *argv[]) {
         else if (argv[i][1] == 'z') { tokenizer_path = argv[i + 1]; }
         else { error_usage(); }
     }
+#endif
     #endif
     
     // parameter validation/overrides
@@ -1003,6 +1007,8 @@ int main(int argc, char *argv[]) {
         // print the token as string, decode it with the Tokenizer object
         char* piece = decode(&tokenizer, token, next);
         printf("%s", piece);
+	sprintf(story, "%s", piece);
+	story += strlen(piece);
         if (bufferflush==pos) { fflush(stdout); bufferflush+=buffertokens; } 
         token = next;
 
@@ -1011,6 +1017,8 @@ int main(int argc, char *argv[]) {
     }
     printf("\n");
     fflush(stdout); // This could be in the if next break, and the print new line prepended to achieved tok/s
+    sprintf(story, "%s", "\n");
+    story += 1;
     // report achieved tok/s (pos-1 because the timer starts after first iteration)
     if (pos > 1) {
         long end = time_in_ms();
@@ -1028,5 +1036,101 @@ int main(int argc, char *argv[]) {
     } // end of loop
     #endif
     #endif    
-    return 0;
+    //return 0;
+}
+
+#include <stdio.h>
+#include <string.h>
+#include <sys/socket.h>
+#include <arpa/inet.h>
+#include <unistd.h>
+#include <errno.h>
+
+#define LISTEN_PORT 8080
+
+static const char reply_fmt[] = "HTTP/1.1 200 OK\r\n" \
+				 "Content-type: text/html\r\n" \
+				 "Connection: close\r\n" \
+				 "\r\n" \
+				 "<!DOCTYPE HTML PUBLIC \"-//IETF//DTD HTML 2.0//EN\">" \
+				 "<html>" \
+				 "<head><title>It works!</title></head>" \
+				 "<body><h1>Here's your story</h1><p>%s</p></body>" \
+				 "</html>\n";
+
+#define BUFLEN 8192
+
+static char recvbuf[BUFLEN];
+static char story[BUFLEN-1024];
+static char sndbuf[BUFLEN];
+
+int main(void)
+{
+	int rc = 0;
+	int srv, client;
+	ssize_t n;
+	struct sockaddr_in srv_addr;
+
+	srv = socket(AF_INET, SOCK_STREAM, 0);
+	if (srv < 0) {
+		fprintf(stderr, "Failed to create socket: %d\n", errno);
+		goto out;
+	}
+
+	srv_addr.sin_family = AF_INET;
+	srv_addr.sin_addr.s_addr = INADDR_ANY;
+	srv_addr.sin_port = htons(LISTEN_PORT);
+
+	rc = bind(srv, (struct sockaddr *) &srv_addr, sizeof(srv_addr));
+	if (rc < 0) {
+		fprintf(stderr, "Failed to bind socket: %d\n", errno);
+		goto out;
+	}
+
+	/* Accept one simultaneous connection */
+	rc = listen(srv, 1);
+	if (rc < 0) {
+		fprintf(stderr, "Failed to listen on socket: %d\n", errno);
+		goto out;
+	}
+
+	printf("Listening on port %d...\n", LISTEN_PORT);
+	while (1) {
+		client = accept(srv, NULL, 0);
+		if (client < 0) {
+			fprintf(stderr,
+				"Failed to accept incoming connection: %d\n",
+				errno);
+			goto out;
+		}
+
+		/* Receive some bytes (ignore errors). */
+		n = read(client, recvbuf, BUFLEN);
+		if (n < 0) {
+			perror("read");
+			fprintf(stderr, "Failed to receive message\n");
+			close(client);
+			continue;
+		}
+		else
+			printf("connection received\n");
+
+		generate_story(story, sizeof(story));
+		sprintf(sndbuf, reply_fmt, story);
+
+		/* Send reply */
+		n = write(client, sndbuf, strlen(sndbuf) - 1);
+		if (n < 0) {
+			perror("write");
+			fprintf(stderr, "Failed to send a reply\n");
+		}
+		else
+			printf("Sent a reply\n");
+
+		/* Close connection */
+		close(client);
+	}
+
+out:
+	return rc;
 }
