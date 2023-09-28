@@ -17,7 +17,7 @@ cd llama2-c/
 ./scripts/setup.sh
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
 make -j $(nproc)
-qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel build/llama2-c_qemu-x86_64
+qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel workdir/build/llama2-c_qemu-x86_64
 ```
 
 This will configure, build and run the `L2E` application.
@@ -138,5 +138,5 @@ And then `make` to build the Unikraft image.
 Run the Unikraft image with `qemu-system-x86_64`:
 
 ```console
-qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel build/llama2-c_qemu-x86_64
+qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel workdir/build/llama2-c_qemu-x86_64
 ```
