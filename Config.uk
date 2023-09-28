@@ -1,6 +1,0 @@
-### Invisible option for dependencies
-config L2E_DEPENDENCIES
-	bool
-	default y
-	select LIBMUSL
-
