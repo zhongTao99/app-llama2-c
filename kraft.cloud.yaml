@@ -1,0 +1,27 @@
+specification: '0.5'
+name: llama2-c
+unikraft:
+  version: cloud
+  kconfig:
+    - CONFIG_LIBUKBOOT_BANNER_NONE=y
+    - CONFIG_LIBUKBUS=y
+    - CONFIG_LIBUKSGLIST=y
+    - CONFIG_OPTIMIZE_DEADELIM=y
+    - CONFIG_OPTIMIZE_LTO=y
+targets:
+  - architecture: x86_64
+    platform: qemu
+  - architecture: arm64
+    platform: qemu
+  - architecture: x86_64
+    platform: firecracker
+  - architecture: arm64
+    platform: firecracker
+libraries:
+  musl:
+    version: stable
+  lwip:
+    version: stable
+  ukp-bin:
+    source: https://github.com/unikraft-io/lib-ukp-bin
+    version: stable
