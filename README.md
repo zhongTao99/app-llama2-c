@@ -3,6 +3,7 @@
 Standalone, Binary Portable, Bootable Llama 2
 
 This is a Unikraft-centric setup of [Llama 2 Everywhere (L2E)](https://github.com/trholding/llama2.c).
+It exposes a very basic HTTP service that can be queried to provide a reply from Llama 2.
 
 ## Quick Set Up (aka TLDR)
 
@@ -17,10 +18,17 @@ cd llama2-c/
 ./scripts/setup.sh
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
 make -j $(nproc)
-qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel workdir/build/llama2-c_qemu-x86_64
+./scripts/run/qemu-x86_64
 ```
 
-This will configure, build and run the `L2E` application.
+This will configure, build and run the `L2E` service.
+It listens for connections on port `8080` of address `172.44.0.2`.
+
+Open another console to query the service and get a story:
+
+```console
+curl 172.44.0.2:8080
+```
 
 ## Requirements
 
@@ -123,7 +131,21 @@ Follow the steps below for the setup:
 
 ## Build
 
-Use the commands below to build:
+### QEMU
+
+Use the commands below to build for QEMU:
+
+```console
+UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
+make -j $(nproc)
+```
+
+It uses the default configuration file `defconfigs/qemu-x86_64` to configure the application.
+And then `make` to build the Unikraft image.
+
+### Firecracker
+
+Use the commands below to build for QEMU:
 
 ```console
 UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
@@ -135,8 +157,21 @@ And then `make` to build the Unikraft image.
 
 ## Run
 
-Run the Unikraft image with `qemu-system-x86_64`:
+Run the Unikraft image with the corresponding scripts, either for QEMU or for Firecracker:
 
 ```console
-qemu-system-x86_64 -enable-kvm -nographic -m 256M -kernel workdir/build/llama2-c_qemu-x86_64
+./scripts/run/qemu-x86_64
+```
+
+```console
+./scripts/run/fc-x86_64
+```
+
+This will configure, build and run the `L2E` service.
+It listens for connections on port `8080` of address `172.44.0.2`.
+
+Open another console to query the service and get a story:
+
+```console
+curl 172.44.0.2:8080
 ```
