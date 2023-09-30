@@ -1,0 +1,4 @@
+runs:
+  - memory: 256
+    networking: True
+    accel: True
