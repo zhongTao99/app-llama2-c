@@ -16,9 +16,11 @@ For building and running everything for `x86_64`, follow the steps below:
 git clone https://github.com/unikraft/app-llama2-c llama2-c
 cd llama2-c/
 ./scripts/setup.sh
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
-make -j $(nproc)
-./scripts/run/qemu-x86_64
+wget https://raw.githubusercontent.com/unikraft/app-testing/staging/scripts/generate.py -O scripts/generate.py
+chmod a+x scripts/generate.py
+./scripts/generate.py
+./scripts/build/make-qemu-x86_64.sh
+./scripts/run/qemu-x86_64.sh
 ```
 
 This will configure, build and run the `L2E` service.
@@ -71,7 +73,7 @@ sudo apt install -y --no-install-recommends \
 
 ## Set Up
 
-The following repositories are required for L2e:
+The following repositories are required for L2E:
 
 * The application repository (this repository): [`app-llama2-c`](https://github.com/unikraft/app-llama2-c)
 * The Unikraft core repository: [`unikraft`](https://github.com/unikraft/unikraft)
@@ -129,45 +131,67 @@ Follow the steps below for the setup:
          `-- version.mk
      ```
 
-## Build
+## Build and Run
 
-### QEMU
+To build and run Unikraft images, it's easiest to generate build and running scripts and use those.
 
-Use the commands below to build for QEMU:
-
-```console
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
-make -j $(nproc)
-```
-
-It uses the default configuration file `defconfigs/qemu-x86_64` to configure the application.
-And then `make` to build the Unikraft image.
-
-### Firecracker
-
-Use the commands below to build for QEMU:
+First of all, grab the [`generate.py` script](https://github.com/unikraft/app-testing/blob/staging/scripts/generate.py) and place it in the `scripts/` directory by running:
 
 ```console
-UK_DEFCONFIG=$(pwd)/defconfigs/qemu-x86_64 make defconfig
-make -j $(nproc)
+wget https://raw.githubusercontent.com/unikraft/app-testing/staging/scripts/generate.py -O scripts/generate.py
+chmod a+x scripts/generate.py
 ```
 
-It uses the default configuration file `defconfigs/qemu-x86_64` to configure the application.
-And then `make` to build the Unikraft image.
-
-## Run
-
-Run the Unikraft image with the corresponding scripts, either for QEMU or for Firecracker:
+Now, run the `generate.py` script.
+You must run it in the root directory of this repository:
 
 ```console
-./scripts/run/qemu-x86_64
+./scripts/generate.py
 ```
+
+Running the script will generate build and run scripts in the `scripts/build/` and the `scripts/run/` directories:
+
+```text
+scripts/
+|-- build/
+|   |-- kraft-fc-arm64.sh*
+|   |-- kraft-fc-x86_64.sh*
+|   |-- kraft-qemu-arm64.sh*
+|   |-- kraft-qemu-x86_64.sh*
+|   |-- make-fc-x86_64.sh*
+|   `-- make-qemu-x86_64.sh*
+|-- generate.py*
+|-- run/
+|   |-- fc-x86_64.json
+|   |-- fc-x86_64.sh*
+|   |-- kraft-fc-arm64.sh*
+|   |-- kraft-fc-x86_64.sh*
+|   |-- kraft-qemu-arm64.sh*
+|   |-- kraft-qemu-x86_64.sh*
+|   `-- qemu-x86_64.sh*
+|-- run.yaml
+`-- setup.sh*
+```
+
+You can now build and run images for different configurations.
+
+For example, to build and run for QEMU on x86_64, run:
 
 ```console
-./scripts/run/fc-x86_64
+./scripts/build/make-qemu-x86_64.sh
+./scripts/run/qemu-x86_64.sh
 ```
 
-This will configure, build and run the `L2E` service.
+This will 
+
+To build and run for Firecracker on x86_64 using KraftKit, run:
+
+```console
+./scripts/build/kraft-fc-x86_64.sh
+./scripts/run/kraft-fc-x86_64.sh
+```
+
+The run script will start the `L2E` service.
 It listens for connections on port `8080` of address `172.44.0.2`.
 
 Open another console to query the service and get a story:
@@ -175,3 +199,15 @@ Open another console to query the service and get a story:
 ```console
 curl 172.44.0.2:8080
 ```
+
+Close the QEMU instance by using the `Ctrl+a x` keyboard combination.
+That is, press `Ctrl` and `a` simultaneously, then release and press `x`.
+
+For Firecracker, you would have to kill the process by issuing a command.
+Simplest is to open up another console and run:
+
+```console
+pkill -f firecracker
+```
+
+Note that Firecracker networking support is not yet enabled, so that will not work.
