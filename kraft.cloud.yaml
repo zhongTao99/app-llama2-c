@@ -9,14 +9,16 @@ unikraft:
     - CONFIG_OPTIMIZE_DEADELIM=y
     - CONFIG_OPTIMIZE_LTO=y
 targets:
-  - architecture: x86_64
-    platform: qemu
-  - architecture: arm64
-    platform: qemu
-  - architecture: x86_64
+  - name: kraftcloud-x86_64
+    architecture: x86_64
     platform: firecracker
-  - architecture: arm64
-    platform: firecracker
+    kconfig:
+      - CONFIG_PLAT_KVM=y
+      - CONFIG_KVM_BOOT_PROTO_LXBOOT=y
+      - CONFIG_KVM_VMM_FIRECRACKER=y
+      - CONFIG_LIBVIRTIO_BUS=y
+      - CONFIG_LIBVIRTIO_MMIO=y
+      - CONFIG_LIBUKBUS=y
 libraries:
   musl:
     version: stable
