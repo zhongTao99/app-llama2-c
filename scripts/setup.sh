@@ -10,6 +10,7 @@ TOK_PATH=tokenizer.bin
 [ ! -d "workdir" ] && echo "Cloning unikraft and musl sources..." || true
 [ ! -d "workdir/unikraft" ] && git clone https://github.com/unikraft/unikraft workdir/unikraft || true
 [ ! -d "workdir/libs/musl" ] && git clone https://github.com/unikraft/lib-musl workdir/libs/musl || true
+[ ! -d "workdir/libs/lwip" ] && git clone https://github.com/unikraft/lib-lwip.git workdir/libs/lwip || true
 gcc -Ofast strliteral.c -o strlit
 ./strlit -i emb_Model_data $MOD_PATH model.h
 ./strlit -i emb_Tokenizer_data $TOK_PATH tokenizer.h
